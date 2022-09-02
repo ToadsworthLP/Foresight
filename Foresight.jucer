@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="yFSLdX" name="Foresight" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="ToadsworthLP"
+              companyWebsite="toadsworthlp.github.io" pluginCharacteristicsValue="pluginIsMidiEffectPlugin,pluginProducesMidiOut,pluginWantsMidiIn"
+              pluginManufacturerCode="Twlp" pluginCode="Fsgt" pluginVSTNumMidiInputs="1"
+              cppLanguageStandard="20">
+  <MAINGROUP id="ZsZZye" name="Foresight">
+    <GROUP id="{8F0BF33F-7252-0D90-7199-A2C31DCA02A3}" name="Source">
+      <FILE id="VofkLl" name="BufferedMidiMessage.cpp" compile="1" resource="0"
+            file="Source/BufferedMidiMessage.cpp"/>
+      <FILE id="vVy92z" name="BufferedMidiMessage.h" compile="0" resource="0"
+            file="Source/BufferedMidiMessage.h"/>
+      <FILE id="YXtwdS" name="BufferedNote.cpp" compile="1" resource="0"
+            file="Source/BufferedNote.cpp"/>
+      <FILE id="NGn9ks" name="BufferedNote.h" compile="0" resource="0" file="Source/BufferedNote.h"/>
+      <FILE id="vT9ZCz" name="VoiceProcessor.cpp" compile="1" resource="0"
+            file="Source/VoiceProcessor.cpp"/>
+      <FILE id="oRsjq3" name="VoiceProcessor.h" compile="0" resource="0"
+            file="Source/VoiceProcessor.h"/>
+      <FILE id="jKWnwc" name="VoiceManager.cpp" compile="1" resource="0"
+            file="Source/VoiceManager.cpp"/>
+      <FILE id="D1LsWF" name="VoiceManager.h" compile="0" resource="0" file="Source/VoiceManager.h"/>
+      <FILE id="ArUaUC" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="O56uI9" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="NVIcWq" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="LgnVPD" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="Foresight" enableIncrementalLinking="1"
+                       enablePluginBinaryCopyStep="1" vst3BinaryLocation="E:\Projects\JUCE\JUCE Build Output\"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="Foresight" enablePluginBinaryCopyStep="1"
+                       enableIncrementalLinking="1" vst3BinaryLocation="E:\Projects\JUCE\JUCE Build Output\"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../Tools/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../Tools/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+  </MODULES>
+</JUCERPROJECT>
