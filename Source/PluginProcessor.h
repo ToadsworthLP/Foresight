@@ -12,6 +12,11 @@
 #include "VoiceProcessor.h"
 #include "VoiceManager.h"
 
+#if DEBUG
+#include <iostream>
+#include <fstream>
+#endif
+
 #define OUTPUT_CHANNEL_COUNT 16
 
 //==============================================================================
@@ -60,12 +65,20 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    //==============================================================================
+
 private:
     //Foresight* currentInstance;
     std::unique_ptr<VoiceManager> voiceManager;
     std::vector<VoiceProcessor> voiceProcessors;
 
     bool lastPlayingState = false;
+
+    void clearState();
+
+#if DEBUG
+    std::ofstream debugFile;
+#endif
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ForesightAudioProcessor)

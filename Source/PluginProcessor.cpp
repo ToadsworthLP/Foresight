@@ -25,10 +25,17 @@ ForesightAudioProcessor::ForesightAudioProcessor()
     setLatencySamples(0);
     voiceManager = std::make_unique<VoiceManager>();
     voiceProcessors.reserve(16);
+
+#if DEBUG
+    debugFile.open("E:/MainDebug.log", std::ios::out | std::ios::app);
+#endif
 }
 
 ForesightAudioProcessor::~ForesightAudioProcessor()
 {
+#if DEBUG
+    debugFile.close();
+#endif
 }
 
 //==============================================================================
@@ -143,12 +150,39 @@ bool ForesightAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts
 
 void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi)
 {
+    auto playheadInfo = getPlayHead()->getPosition();
+    bool isPlaying = playheadInfo->getIsPlaying();
+
+#if DEBUG
+    if (isPlaying && !lastPlayingState) debugFile << "Playback started" << std::endl;
+
+    if (!isPlaying && lastPlayingState) debugFile << "Playback stopped" << std::endl;
+#endif
+
     buffer.clear();
 
-    bool isPlaying = getPlayHead()->getPosition()->getIsPlaying();
+    // Clear everything if it was just stopped or started
+    if (!isPlaying && lastPlayingState) {
+        clearState();
 
-    // Bypass all processing if the host is not playing
-    if (isPlaying) {
+        juce::MidiBuffer noteStopBuffer;
+        for (int i = 0; i < 16; i++)
+        {
+            noteStopBuffer.addEvent(juce::MidiMessage::allNotesOff(i + 1), 0);
+        }
+
+        inputMidi.swapWith(noteStopBuffer); // Also send note off if it was stopped
+
+#if DEBUG
+        debugFile << "Note off sent on reset" << std::endl;
+#endif
+    }
+    else if (isPlaying && !lastPlayingState) {
+        clearState();
+    } 
+    
+    if (isPlaying)
+    {
         // Split the input into a maximum of 16 monophonic voices
         juce::MidiBuffer splitBuffer = voiceManager->processBuffer(inputMidi);
 
@@ -161,28 +195,14 @@ void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
         // Merge the buffers
         juce::MidiBuffer mergedOutputBuffer;
-        for (const juce::MidiBuffer channelBuffer : channelBuffers)
+        for (const juce::MidiBuffer& channelBuffer : channelBuffers)
         {
             mergedOutputBuffer.addEvents(channelBuffer, 0, -1, 0);
         }
 
         inputMidi.swapWith(mergedOutputBuffer);
     }
-    else if (!isPlaying && lastPlayingState) {
-        voiceManager->reset();
-        for (auto& voiceProcessor : voiceProcessors)
-        {
-            voiceProcessor.reset();
-        }
-
-        juce::MidiBuffer noteStopBuffer;
-        for (int i = 0; i < 16; i++)
-        {
-            noteStopBuffer.addEvent(juce::MidiMessage::allNotesOff(i+1), 0);
-        }
-
-        inputMidi.swapWith(noteStopBuffer);
-    }
+    // Bypass all processing if the host is not playing
 
     lastPlayingState = isPlaying;
 }
@@ -210,6 +230,19 @@ void ForesightAudioProcessor::setStateInformation (const void* data, int sizeInB
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+void ForesightAudioProcessor::clearState()
+{
+    voiceManager->reset();
+    for (auto& voiceProcessor : voiceProcessors)
+    {
+        voiceProcessor.reset();
+    }
+
+#if DEBUG
+    debugFile << "Reset! " << std::endl;
+#endif
 }
 
 //==============================================================================

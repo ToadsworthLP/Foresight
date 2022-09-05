@@ -2,7 +2,6 @@
 
 VoiceManager::VoiceManager()
 {
-	
 }
 
 VoiceManager::~VoiceManager()
@@ -15,7 +14,7 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 
 	// Group events by time
 	std::map<int, std::vector<juce::MidiMessage>> eventsPerSample;
-	for (const auto metadata : buffer) {
+	for (const auto& metadata : buffer) {
 		auto message = metadata.getMessage();
 		const auto time = metadata.samplePosition;
 
@@ -23,16 +22,16 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 			eventsPerSample[time] = std::vector<juce::MidiMessage>();
 		}
 
-		eventsPerSample[time].push_back(message);
+		eventsPerSample[time].emplace_back(message);
 	}
 
 	// Process voices
 	// Just makes it strictly monophonic for now
-	for (const auto entry : eventsPerSample) { // For each group...
+	for (auto& entry : eventsPerSample) { // For each group...
 		int time = entry.first;
 
-		// ...copy over CC changes
-		for (auto message : entry.second)
+		// ...copy over everything that's not a note
+		for (auto& message : entry.second)
 		{
 			if (!message.isNoteOnOrOff()) {
 				message.setChannel(1);
@@ -41,11 +40,10 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 		}
 
 		// ...look for a note-off first
-		for (auto message : entry.second)
+		for (auto& message : entry.second)
 		{
 			if (message.isNoteOff() && heldNote.has_value() && heldNote == message.getNoteNumber()) {
 				heldNote.reset();
-				currentVoiceCount--;
 
 				message.setChannel(1);
 				processedBuffer.addEvent(message, time);
@@ -54,21 +52,46 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 			}
 		}
 
-		if (heldNote.has_value()) continue; // ...ignore everything if a note is still currently held...
-
-		// ...or queue the next-best note-on if not
-		for (auto message : entry.second)
+		// ...handle note-on
+		for (auto& message : entry.second)
 		{
-			if (message.isNoteOn()) {
+			if (message.isNoteOn())
+			{
+				// If there's already a playing note, stop it
+				if (heldNote.has_value())
+				{
+					processedBuffer.addEvent(juce::MidiMessage::noteOff(1, heldNote.value()), time);
+					heldNote.reset();
+				}
+
+				// Play the new note
+				
 				heldNote = message.getNoteNumber();
-				currentVoiceCount++;
 
 				message.setChannel(1);
 				processedBuffer.addEvent(message, time);
 
-				break; // Discard the rest
+				break;
 			}
 		}
+
+		//if (heldNote.has_value()) continue; // ...ignore everything if a note is still currently held...
+
+		// ...or queue the next-best note-on if not
+		//for (auto message : entry.second)
+		//{
+		//	if (message.isNoteOn()) {
+		//		heldNote = message.getNoteNumber();
+		//		currentVoiceCount++;
+
+		//		message.setChannel(1);
+		//		processedBuffer.addEvent(message, time);
+
+		//		break; // Discard the rest
+		//	}
+		//}
+
+
 	}
 
 	return processedBuffer;
@@ -76,11 +99,10 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 
 int VoiceManager::getCurrentVoiceCount()
 {
-	return currentVoiceCount;
+	return 1;
 }
 
 void VoiceManager::reset()
 {
 	heldNote.reset();
-	currentVoiceCount = 0;
 }

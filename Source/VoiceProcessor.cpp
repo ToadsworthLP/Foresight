@@ -1,4 +1,41 @@
 #include "VoiceProcessor.h"
+#include "PluginProcessor.h"
+
+VoiceProcessor::VoiceProcessor(int bufferSizeSamples)
+{
+	this->bufferSizeSamples = bufferSizeSamples;
+
+#if DEBUG
+	debugFile.open("E:/VoiceProcDebug.log", std::ios::out | std::ios::app);
+#endif
+}
+
+VoiceProcessor::VoiceProcessor(const VoiceProcessor& other)
+{
+#if DEBUG
+	debugFile << "Copy constructor invoked!" << std::endl;
+#endif
+
+	bufferSizeSamples = other.bufferSizeSamples;
+	readHeadPosition = other.readHeadPosition;
+
+	for (const auto& note : other.bufferedNotes) {
+		BufferedNote* newNote = new BufferedNote(*note);
+		bufferedNotes.emplace_back(newNote);
+	}
+
+	heldNoteAtWritePosition = bufferedNotes.back();
+	lastWrittenNote = other.lastWrittenNote;
+	unprocessedBuffer = other.unprocessedBuffer;
+}
+
+VoiceProcessor::~VoiceProcessor()
+{
+#if DEBUG
+	debugFile.close();
+#endif
+	reset();
+}
 
 juce::MidiBuffer VoiceProcessor::processBuffer(const juce::MidiBuffer& buffer, int channel, int lengthSamples)
 {
@@ -17,7 +54,7 @@ juce::MidiBuffer VoiceProcessor::processBuffer(const juce::MidiBuffer& buffer, i
 			eventsPerSample[time] = std::vector<juce::MidiMessage>();
 		}
 
-		eventsPerSample[time].push_back(message);
+		eventsPerSample[time].emplace_back(message);
 	}
 
 	// Do processing for each sample in the buffer
@@ -36,7 +73,7 @@ juce::MidiBuffer VoiceProcessor::processBuffer(const juce::MidiBuffer& buffer, i
 		}
 	}
 
-	// This just copies everything to the output
+	//// This just copies everything to the output
 	//for (const auto metadata : buffer) {
 	//	auto message = metadata.getMessage();
 
@@ -51,11 +88,14 @@ juce::MidiBuffer VoiceProcessor::processBuffer(const juce::MidiBuffer& buffer, i
 
 void VoiceProcessor::reset()
 {
+	for (const auto& entry : bufferedNotes) {
+		delete(entry);
+	}
+
 	bufferedNotes.clear();
 	unprocessedBuffer.clear();
 	lastWrittenNote.reset();
 	heldNoteAtWritePosition = nullptr;
-	heldNoteAtReadPosition = nullptr;
 	readHeadPosition = 0;
 }
 
@@ -69,59 +109,51 @@ unsigned long long VoiceProcessor::getWritePosition()
 	return readHeadPosition + bufferSizeSamples;
 }
 
-std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional<std::vector<juce::MidiMessage>> enteredMessages, int channel)
+std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional<std::vector<juce::MidiMessage>>& enteredMessages, int channel)
 {
 	std::vector<juce::MidiMessage> output;
 
-	// Read
+	// Read from the buffer
 
-	// Everything else
-	while (unprocessedBuffer.size() > 0 && unprocessedBuffer.front().time <= getReadPosition()) {
-		BufferedMidiMessage* readMessage = unprocessedBuffer.data();
-		readMessage->message.setChannel(channel);
-
-		output.emplace_back(readMessage->message);
+	// Controller data
+	while (!unprocessedBuffer.empty() && unprocessedBuffer.front().time == getReadPosition()) {
+		output.emplace_back(unprocessedBuffer.front().message);
 		unprocessedBuffer.erase(unprocessedBuffer.begin());
 	}
 
-	//Note Off
-	if (heldNoteAtReadPosition && heldNoteAtReadPosition->hasEnd() && heldNoteAtReadPosition->endTime <= getReadPosition()) {
-		juce::MidiMessage message = juce::MidiMessage::noteOff(channel, heldNoteAtReadPosition->pitch, (juce::uint8)heldNoteAtReadPosition->velocity);
-		output.emplace_back(message);
-		
-		heldNoteAtReadPosition = nullptr;
-		bufferedNotes.erase(bufferedNotes.begin());
+	// Note off
+	for (size_t i = 0; i < bufferedNotes.size(); i++)
+	{
+		BufferedNote* note = bufferedNotes[i];
+		if (note->endTime == getReadPosition()) {
+			output.emplace_back(juce::MidiMessage::noteOff(channel, note->pitch));
+			bufferedNotes.erase(bufferedNotes.begin() + i);
+			delete(note);
+		}
 	}
 
-	//Note On
-	if (bufferedNotes.size() > 0 && bufferedNotes.data() != heldNoteAtReadPosition && bufferedNotes.front().startTime <= getReadPosition()) {
-		BufferedNote* readNote = bufferedNotes.data();
-
-		juce::MidiMessage message = juce::MidiMessage::noteOn(channel, readNote->pitch, (juce::uint8)readNote->velocity);
-		output.emplace_back(message);
-
-		heldNoteAtReadPosition = readNote;
+	// Note on
+	for (const auto& note : bufferedNotes) {
+		if (note->startTime == getReadPosition()) {
+			output.emplace_back(juce::MidiMessage::noteOn(channel, note->pitch, (juce::uint8)note->velocity));
+		}
 	}
 
-	// Write
+	// Write to the buffer
 	if (enteredMessages.has_value()) {
-		for (const auto message : enteredMessages.value()) {
-			// Note On
-			if (message.isNoteOn()) {
-				bufferedNotes.emplace_back( message, getWritePosition());
-				heldNoteAtWritePosition = &*bufferedNotes.rbegin();
-			}
-			// Note Off
-			else if (message.isNoteOff()) {
-				if (heldNoteAtWritePosition) {
-					heldNoteAtWritePosition->endTime = getWritePosition();
-					lastWrittenNote = *heldNoteAtWritePosition;
-					heldNoteAtWritePosition = nullptr;
-				}
-			}
-			// Everything else
-			else {
+		for (const auto& message : enteredMessages.value()) {
+			if (!message.isNoteOnOrOff()) { // Controller data
 				unprocessedBuffer.emplace_back(message, getWritePosition());
+			}
+			else if (message.isNoteOff()) { // Note off
+				heldNoteAtWritePosition->endTime = getWritePosition();
+				lastWrittenNote = *heldNoteAtWritePosition;
+				heldNoteAtWritePosition = nullptr;
+			}
+			else if (message.isNoteOn()) { // Note on
+				BufferedNote* newNote = new BufferedNote(message, getWritePosition());
+				bufferedNotes.emplace_back(newNote);
+				heldNoteAtWritePosition = newNote;
 			}
 		}
 	}

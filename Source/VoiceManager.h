@@ -27,5 +27,4 @@ public:
 
 private:
 	std::optional<int> heldNote;
-	int currentVoiceCount = 0;
 };
