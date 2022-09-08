@@ -7,6 +7,41 @@
               cppLanguageStandard="20">
   <MAINGROUP id="ZsZZye" name="Foresight">
     <GROUP id="{8F0BF33F-7252-0D90-7199-A2C31DCA02A3}" name="Source">
+      <FILE id="BZrka3" name="InputTreeRootNode.cpp" compile="1" resource="0"
+            file="Source/InputTreeRootNode.cpp"/>
+      <FILE id="i53gvi" name="InputTreeRootNode.h" compile="0" resource="0"
+            file="Source/InputTreeRootNode.h"/>
+      <FILE id="mQqE85" name="InputTreeNodeFactory.cpp" compile="1" resource="0"
+            file="Source/InputTreeNodeFactory.cpp"/>
+      <FILE id="rmCeSB" name="InputTreeNodeFactory.h" compile="0" resource="0"
+            file="Source/InputTreeNodeFactory.h"/>
+      <FILE id="MVz03f" name="InputTreeTagNode.cpp" compile="1" resource="0"
+            file="Source/InputTreeTagNode.cpp"/>
+      <FILE id="cMpjOn" name="InputTreeTagNode.h" compile="0" resource="0"
+            file="Source/InputTreeTagNode.h"/>
+      <FILE id="YxMAe2" name="InputTreeCase.cpp" compile="1" resource="0"
+            file="Source/InputTreeCase.cpp"/>
+      <FILE id="R9OOXK" name="InputTreeCase.h" compile="0" resource="0" file="Source/InputTreeCase.h"/>
+      <FILE id="mo0z34" name="InputTreeSwitchNode.cpp" compile="1" resource="0"
+            file="Source/InputTreeSwitchNode.cpp"/>
+      <FILE id="E8MTgp" name="InputTreeSwitchNode.h" compile="0" resource="0"
+            file="Source/InputTreeSwitchNode.h"/>
+      <FILE id="eKllkl" name="NoteContext.cpp" compile="1" resource="0" file="Source/NoteContext.cpp"/>
+      <FILE id="g9Azu4" name="NoteContext.h" compile="0" resource="0" file="Source/NoteContext.h"/>
+      <FILE id="GJ2ZYF" name="IInputTreeNode.h" compile="0" resource="0"
+            file="Source/IInputTreeNode.h"/>
+      <FILE id="JdiR8W" name="Versioning.h" compile="0" resource="0" file="Source/Versioning.h"/>
+      <FILE id="RXQmxc" name="GuiEditorComponent.cpp" compile="1" resource="0"
+            file="Source/GuiEditorComponent.cpp"/>
+      <FILE id="cfdRsI" name="Configuration.cpp" compile="1" resource="0"
+            file="Source/Configuration.cpp"/>
+      <FILE id="xxxAnw" name="Configuration.h" compile="0" resource="0" file="Source/Configuration.h"/>
+      <FILE id="RUi0VW" name="GuiEditorComponent.h" compile="0" resource="0"
+            file="Source/GuiEditorComponent.h"/>
+      <FILE id="lgpgKQ" name="GuiMainComponent.cpp" compile="1" resource="0"
+            file="Source/GuiMainComponent.cpp"/>
+      <FILE id="Hyw1c2" name="GuiMainComponent.h" compile="0" resource="0"
+            file="Source/GuiMainComponent.h"/>
       <FILE id="VofkLl" name="BufferedMidiMessage.cpp" compile="1" resource="0"
             file="Source/BufferedMidiMessage.cpp"/>
       <FILE id="vVy92z" name="BufferedMidiMessage.h" compile="0" resource="0"

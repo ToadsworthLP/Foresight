@@ -577,6 +577,33 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\InputTreeRootNode.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\InputTreeNodeFactory.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\InputTreeTagNode.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\InputTreeCase.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\InputTreeSwitchNode.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\NoteContext.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\GuiEditorComponent.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Configuration.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\GuiMainComponent.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\BufferedMidiMessage.cpp">
       <Filter>Foresight\Source</Filter>
     </ClCompile>
@@ -2898,6 +2925,39 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\InputTreeRootNode.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\InputTreeNodeFactory.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\InputTreeTagNode.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\InputTreeCase.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\InputTreeSwitchNode.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\NoteContext.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\IInputTreeNode.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Versioning.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Configuration.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\GuiEditorComponent.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\GuiMainComponent.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\BufferedMidiMessage.h">
       <Filter>Foresight\Source</Filter>
     </ClInclude>

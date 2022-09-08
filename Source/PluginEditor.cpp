@@ -15,7 +15,24 @@ ForesightAudioProcessorEditor::ForesightAudioProcessorEditor (ForesightAudioProc
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize (300, 300);
+
+    mainComponent = std::make_unique<GuiMainComponent>();
+    editorComponent = std::make_unique<GuiEditorComponent>();
+
+    tabbedComponent.setBounds(getBounds());
+    tabbedComponent.addTab("Home", getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId), &*mainComponent, false, 0);
+    tabbedComponent.addTab("Configure", getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId), &*editorComponent, false, 1);
+
+    editorComponent->setConfigUpdatedCallback([this](std::string config) {
+        applyButtonClicked(config);
+    });
+
+    audioProcessor.setUpdateGuiCallback([this](const std::string configName, const std::string configLatency, const std::string configSource) {
+        updateGui(configName, configLatency, configSource);
+    });
+
+    audioProcessor.updateGui();
 }
 
 ForesightAudioProcessorEditor::~ForesightAudioProcessorEditor()
@@ -25,16 +42,28 @@ ForesightAudioProcessorEditor::~ForesightAudioProcessorEditor()
 //==============================================================================
 void ForesightAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 
-    g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    addAndMakeVisible(tabbedComponent);
 }
 
 void ForesightAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+}
+
+void ForesightAudioProcessorEditor::updateGui(const std::string& configName, const std::string& configLatency, const std::string& configSource)
+{
+    if (mainComponent) {
+        mainComponent->setDisplayedConfigName(configName);
+        mainComponent->setDisplayedLatency(configLatency);
+    }
+    
+    if (editorComponent) {
+        editorComponent->setDisplayedConfig(configSource);
+    }
+}
+
+void ForesightAudioProcessorEditor::applyButtonClicked(const std::string& configString)
+{
+    audioProcessor.setConfiguration(configString);
 }

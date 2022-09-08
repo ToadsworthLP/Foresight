@@ -1,0 +1,4 @@
+#pragma once
+
+#define CURRENT_STATE_VERSION 0
+#define CURRENT_CONFIG_VERSION 0

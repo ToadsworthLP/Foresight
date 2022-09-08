@@ -141,6 +141,15 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\InputTreeRootNode.cpp"/>
+    <ClCompile Include="..\..\Source\InputTreeNodeFactory.cpp"/>
+    <ClCompile Include="..\..\Source\InputTreeTagNode.cpp"/>
+    <ClCompile Include="..\..\Source\InputTreeCase.cpp"/>
+    <ClCompile Include="..\..\Source\InputTreeSwitchNode.cpp"/>
+    <ClCompile Include="..\..\Source\NoteContext.cpp"/>
+    <ClCompile Include="..\..\Source\GuiEditorComponent.cpp"/>
+    <ClCompile Include="..\..\Source\Configuration.cpp"/>
+    <ClCompile Include="..\..\Source\GuiMainComponent.cpp"/>
     <ClCompile Include="..\..\Source\BufferedMidiMessage.cpp"/>
     <ClCompile Include="..\..\Source\BufferedNote.cpp"/>
     <ClCompile Include="..\..\Source\VoiceProcessor.cpp"/>
@@ -2298,6 +2307,17 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_extra.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\InputTreeRootNode.h"/>
+    <ClInclude Include="..\..\Source\InputTreeNodeFactory.h"/>
+    <ClInclude Include="..\..\Source\InputTreeTagNode.h"/>
+    <ClInclude Include="..\..\Source\InputTreeCase.h"/>
+    <ClInclude Include="..\..\Source\InputTreeSwitchNode.h"/>
+    <ClInclude Include="..\..\Source\NoteContext.h"/>
+    <ClInclude Include="..\..\Source\IInputTreeNode.h"/>
+    <ClInclude Include="..\..\Source\Versioning.h"/>
+    <ClInclude Include="..\..\Source\Configuration.h"/>
+    <ClInclude Include="..\..\Source\GuiEditorComponent.h"/>
+    <ClInclude Include="..\..\Source\GuiMainComponent.h"/>
     <ClInclude Include="..\..\Source\BufferedMidiMessage.h"/>
     <ClInclude Include="..\..\Source\BufferedNote.h"/>
     <ClInclude Include="..\..\Source\VoiceProcessor.h"/>

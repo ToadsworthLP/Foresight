@@ -1,5 +1,6 @@
 #include "VoiceProcessor.h"
 #include "PluginProcessor.h"
+#include "NoteContext.h"
 
 VoiceProcessor::VoiceProcessor(int bufferSizeSamples)
 {
@@ -99,6 +100,11 @@ void VoiceProcessor::reset()
 	readHeadPosition = 0;
 }
 
+void VoiceProcessor::updateConfiguration(Configuration* configuration)
+{
+	this->configuration = configuration;
+}
+
 unsigned long long VoiceProcessor::getReadPosition()
 {
 	return readHeadPosition;
@@ -117,6 +123,9 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 
 	// Controller data
 	while (!unprocessedBuffer.empty() && unprocessedBuffer.front().time == getReadPosition()) {
+		juce::MidiMessage message = unprocessedBuffer.front().message;
+		if (message.isController()) readPositionCCStates[message.getControllerNumber()] = message.getControllerValue();
+
 		output.emplace_back(unprocessedBuffer.front().message);
 		unprocessedBuffer.erase(unprocessedBuffer.begin());
 	}
@@ -128,6 +137,7 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 		if (note->endTime == getReadPosition()) {
 			output.emplace_back(juce::MidiMessage::noteOff(channel, note->pitch));
 			bufferedNotes.erase(bufferedNotes.begin() + i);
+			previousNoteAtReadPosition = *note;
 			delete(note);
 		}
 	}
@@ -135,6 +145,9 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 	// Note on
 	for (const auto& note : bufferedNotes) {
 		if (note->startTime == getReadPosition()) {
+			// Process note that's about to play - everything but start delay is processed here
+			NoteContext context = NoteContext(note, previousNoteAtReadPosition, readPositionCCStates);
+
 			output.emplace_back(juce::MidiMessage::noteOn(channel, note->pitch, (juce::uint8)note->velocity));
 		}
 	}
@@ -144,16 +157,22 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 		for (const auto& message : enteredMessages.value()) {
 			if (!message.isNoteOnOrOff()) { // Controller data
 				unprocessedBuffer.emplace_back(message, getWritePosition());
+				if (message.isController()) writePositionCCStates[message.getControllerNumber()] = message.getControllerValue();
 			}
 			else if (message.isNoteOff()) { // Note off
 				heldNoteAtWritePosition->endTime = getWritePosition();
 				lastWrittenNote = *heldNoteAtWritePosition;
+				previousNoteAtReadPosition = *heldNoteAtWritePosition;
 				heldNoteAtWritePosition = nullptr;
 			}
 			else if (message.isNoteOn()) { // Note on
 				BufferedNote* newNote = new BufferedNote(message, getWritePosition());
 				bufferedNotes.emplace_back(newNote);
 				heldNoteAtWritePosition = newNote;
+
+				// Process new note - only start delay is processed here
+				NoteContext context = NoteContext(newNote, previousNoteAtWritePosition, writePositionCCStates);
+				configuration->processNote(context);
 			}
 		}
 	}

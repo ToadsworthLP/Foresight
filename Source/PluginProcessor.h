@@ -11,6 +11,8 @@
 #include <JuceHeader.h>
 #include "VoiceProcessor.h"
 #include "VoiceManager.h"
+#include "Versioning.h"
+#include "Configuration.h"
 
 #if DEBUG
 #include <iostream>
@@ -66,15 +68,23 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     //==============================================================================
+    bool setConfiguration(const std::string& configurationXml);
+    void setDefaultConfiguration();
+    Configuration& getConfiguration();
+
+    void updateGui();
+    void setUpdateGuiCallback(const std::function<void(const std::string&, const  std::string&, const std::string&)>& callback);
 
 private:
-    //Foresight* currentInstance;
+    std::unique_ptr<Configuration> configuration;
     std::unique_ptr<VoiceManager> voiceManager;
     std::vector<VoiceProcessor> voiceProcessors;
 
     bool lastPlayingState = false;
-
     void clearState();
+
+    bool isCreatingEditor = false;
+    std::function<void(const std::string&, const  std::string&, const std::string&)> updateGuiCallback;
 
 #if DEBUG
     std::ofstream debugFile;

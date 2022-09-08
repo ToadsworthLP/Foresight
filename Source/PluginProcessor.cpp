@@ -12,19 +12,22 @@
 //==============================================================================
 ForesightAudioProcessor::ForesightAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+    : AudioProcessor(BusesProperties()
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)
+#endif
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+#endif
+    )
 #endif
 {
     setLatencySamples(0);
+
     voiceManager = std::make_unique<VoiceManager>();
     voiceProcessors.reserve(16);
+
+    if(!configuration) setDefaultConfiguration();
 
 #if DEBUG
     debugFile.open("E:/MainDebug.log", std::ios::out | std::ios::app);
@@ -105,12 +108,17 @@ void ForesightAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 {
     lastPlayingState = false;
 
-    setLatencySamples(sampleRate);
+    configuration->updateSampleRate(sampleRate);
+    setLatencySamples(configuration->getLatencySamples());
 
     for (size_t i = 0; i < 16; i++)
     {
         voiceProcessors.emplace_back(sampleRate);
     }
+
+#if DEBUG
+    debugFile << "Latency samples: " << configuration->getLatencySamples() << std::endl;
+#endif
 }
 
 void ForesightAudioProcessor::releaseResources()
@@ -181,7 +189,8 @@ void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         clearState();
     } 
     
-    if (isPlaying)
+    // Bypass all processing if the host is not playing
+    if (/*isPlaying*/true)
     {
         // Split the input into a maximum of 16 monophonic voices
         juce::MidiBuffer splitBuffer = voiceManager->processBuffer(inputMidi);
@@ -202,7 +211,6 @@ void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
         inputMidi.swapWith(mergedOutputBuffer);
     }
-    // Bypass all processing if the host is not playing
 
     lastPlayingState = isPlaying;
 }
@@ -215,21 +223,90 @@ bool ForesightAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* ForesightAudioProcessor::createEditor()
 {
-    return new ForesightAudioProcessorEditor (*this);
+    isCreatingEditor = true;
+    ForesightAudioProcessorEditor* editor = new ForesightAudioProcessorEditor (*this);
+    isCreatingEditor = false;
+
+    return editor;
 }
 
 //==============================================================================
 void ForesightAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    std::unique_ptr<juce::XmlElement> state = std::make_unique<juce::XmlElement>("foresight-state");
+    state->setAttribute("version", CURRENT_STATE_VERSION);
+    juce::XmlElement* sourceElement = state->createNewChildElement("source");
+    sourceElement->addTextElement(configuration->getSourceXML());
+
+    copyXmlToBinary(*state, destData);
 }
 
 void ForesightAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> state(getXmlFromBinary(data, sizeInBytes));
+
+    // Check if the state is valid
+    if (state && state->getTagName() == "foresight-state" && std::stoi(state->getAttributeValue(0).toStdString()) <= CURRENT_STATE_VERSION)
+    {
+        std::string source = state->getChildByName("source")->getAllSubText().toStdString();
+        setConfiguration(source);
+    }
+    else {
+        setDefaultConfiguration();
+    }
+}
+
+bool ForesightAudioProcessor::setConfiguration(const std::string& configurationXml)
+{
+    bool success = true;
+
+    suspendProcessing(true);
+
+    try {
+        configuration = std::make_unique<Configuration>(configurationXml);
+
+        for (auto& processor : voiceProcessors) processor.updateConfiguration(configuration.get());
+    }
+    catch (const std::exception& e) {
+        configuration = std::make_unique<Configuration>();
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Configuration Error", "Failed to load configuration: \n" + std::string(e.what()), "Ok", nullptr, nullptr);
+        success = false;
+    }
+
+    suspendProcessing(false);
+
+    updateGui();
+
+    return success;
+}
+
+void ForesightAudioProcessor::setDefaultConfiguration()
+{
+    suspendProcessing(true);
+
+    configuration = std::make_unique<Configuration>();
+
+    suspendProcessing(false);
+
+    updateGui();
+}
+
+
+
+Configuration& ForesightAudioProcessor::getConfiguration()
+{
+    return *configuration;
+}
+
+void ForesightAudioProcessor::updateGui()
+{
+    bool editorAvailable = (getActiveEditor() || isCreatingEditor);
+    if (updateGuiCallback && editorAvailable) updateGuiCallback(configuration->getName(), "Latency: " + std::to_string(configuration->getLatencySeconds()) + "s", configuration->getSourceXML());
+}
+
+void ForesightAudioProcessor::setUpdateGuiCallback(const std::function<void(const std::string&, const  std::string&, const std::string&)>& callback)
+{
+    updateGuiCallback = callback;
 }
 
 void ForesightAudioProcessor::clearState()
