@@ -19,7 +19,7 @@ int NoteContext::getCCValue(const int number)
 
 bool NoteContext::isLegato()
 {
-	return previousNote.has_value() && note->startTime == previousNote->endTime;
+	return previousNote.has_value() && llabs(note->startTime - previousNote->endTime.value()) <= 16;
 }
 
 std::optional<unsigned long long> NoteContext::getLength()

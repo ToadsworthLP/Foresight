@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "Versioning.h"
 #include "IInputTreeNode.h"
+#include "OutputListNode.h"
 
 class Configuration {
 public:
@@ -11,10 +12,12 @@ public:
 	std::string getSourceXML();
 	std::string getName();
 	double getLatencySeconds();
+	double getSampleRate();
 	void updateSampleRate(double sampleRate);
 	int getLatencySamples();
 
-	NoteContext& processNote(NoteContext& context);
+	std::unordered_set<std::string> getTagsForNote(NoteContext& context);
+	std::optional<OutputListNode> getOutputNode(const std::string& tag);
 private:
 	int version;
 	double lastSampleRate;
@@ -23,4 +26,5 @@ private:
 	std::string xml;
 
 	std::unique_ptr<IInputTreeNode> inputTreeRoot;
+	std::map<std::string, OutputListNode> outputList;
 };

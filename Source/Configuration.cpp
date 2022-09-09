@@ -1,7 +1,7 @@
 #include "Configuration.h"
 #include "InputTreeRootNode.h"
 
-Configuration::Configuration() : Configuration("<foresight version=\"0\" name=\"None\">\n	<input></input>\n</foresight>")
+Configuration::Configuration() : Configuration("<foresight version=\"0\" name=\"None\">\n    <settings>\n        <latency>0</latency>\n    </settings>\n    <input></input>\n    <output></output>\n</foresight>")
 {
 }
 
@@ -19,11 +19,30 @@ Configuration::Configuration(const std::string& xml)
 
 	if (version > CURRENT_CONFIG_VERSION) throw std::exception("This configuration was created for a newer version of Foresight. Please update the plugin to use this configuration.");
 
+	juce::XmlElement* settingsRootElement = rootElement->getChildByName("settings");
+
+	if (settingsRootElement) {
+		juce::XmlElement* latencySettingElement = settingsRootElement->getChildByName("latency");
+		if (latencySettingElement) latency = std::stod(latencySettingElement->getAllSubText().toStdString()) / 1000.0;
+	}
+
 	juce::XmlElement* inputTreeRootElement = rootElement->getChildByName("input");
 
 	if (!inputTreeRootElement) throw std::exception("No <input> node found.");
 
 	inputTreeRoot = std::make_unique<InputTreeRootNode>(*inputTreeRootElement);
+
+	juce::XmlElement* outputListRootElement = rootElement->getChildByName("output");
+
+	if (!outputListRootElement) throw std::exception("No <output> node found.");
+
+	for (const auto& tagElement : outputListRootElement->getChildIterator()) {
+		std::string tagName = tagElement->getStringAttribute("name").toStdString();
+
+		for (const auto& setElement : tagElement->getChildIterator()) {
+			outputList[tagName] = OutputListNode(*setElement);
+		}
+	}
 }
 
 std::string Configuration::getSourceXML()
@@ -41,6 +60,11 @@ double Configuration::getLatencySeconds()
 	return latency;
 }
 
+double Configuration::getSampleRate()
+{
+	return lastSampleRate;
+}
+
 void Configuration::updateSampleRate(double sampleRate)
 {
 	lastSampleRate = sampleRate;
@@ -51,7 +75,14 @@ int Configuration::getLatencySamples()
 	return (int)std::round(latency * lastSampleRate);
 }
 
-NoteContext& Configuration::processNote(NoteContext& context)
+std::unordered_set<std::string> Configuration::getTagsForNote(NoteContext& context)
 {
-	return inputTreeRoot->visit(context);
+	inputTreeRoot->visit(context);
+	return context.getTags();
+}
+
+std::optional<OutputListNode> Configuration::getOutputNode(const std::string& tag)
+{
+	if (!outputList.contains(tag)) return std::optional<OutputListNode>();
+	return outputList[tag];
 }

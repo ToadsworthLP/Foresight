@@ -76,6 +76,8 @@ public:
     void setUpdateGuiCallback(const std::function<void(const std::string&, const  std::string&, const std::string&)>& callback);
 
 private:
+    double lastSampleRate = 0;
+
     std::unique_ptr<Configuration> configuration;
     std::unique_ptr<VoiceManager> voiceManager;
     std::vector<VoiceProcessor> voiceProcessors;
@@ -85,6 +87,8 @@ private:
 
     bool isCreatingEditor = false;
     std::function<void(const std::string&, const  std::string&, const std::string&)> updateGuiCallback;
+
+    std::atomic_bool isCurrentlyInsideProcessBlock = false;
 
 #if DEBUG
     std::ofstream debugFile;

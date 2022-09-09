@@ -107,13 +107,14 @@ void ForesightAudioProcessor::changeProgramName (int index, const juce::String& 
 void ForesightAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     lastPlayingState = false;
+    lastSampleRate = sampleRate;
 
-    configuration->updateSampleRate(sampleRate);
+    configuration->updateSampleRate(lastSampleRate);
     setLatencySamples(configuration->getLatencySamples());
 
     for (size_t i = 0; i < 16; i++)
     {
-        voiceProcessors.emplace_back(sampleRate);
+        voiceProcessors.emplace_back();
     }
 
 #if DEBUG
@@ -158,6 +159,8 @@ bool ForesightAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts
 
 void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi)
 {
+    isCurrentlyInsideProcessBlock = true;
+
     auto playheadInfo = getPlayHead()->getPosition();
     bool isPlaying = playheadInfo->getIsPlaying();
 
@@ -189,8 +192,12 @@ void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         clearState();
     } 
     
+#if DEBUG
+    if (true)
+#else
     // Bypass all processing if the host is not playing
-    if (/*isPlaying*/true)
+    if (isPlaying)
+#endif
     {
         // Split the input into a maximum of 16 monophonic voices
         juce::MidiBuffer splitBuffer = voiceManager->processBuffer(inputMidi);
@@ -213,6 +220,8 @@ void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     }
 
     lastPlayingState = isPlaying;
+
+    isCurrentlyInsideProcessBlock = false;
 }
 
 //==============================================================================
@@ -262,10 +271,15 @@ bool ForesightAudioProcessor::setConfiguration(const std::string& configurationX
 
     suspendProcessing(true);
 
+    while (isCurrentlyInsideProcessBlock) { } // Wait until the process block has finished
+
     try {
         configuration = std::make_unique<Configuration>(configurationXml);
+        configuration->updateSampleRate(lastSampleRate);
 
         for (auto& processor : voiceProcessors) processor.updateConfiguration(configuration.get());
+
+        setLatencySamples(configuration->getLatencySamples());
     }
     catch (const std::exception& e) {
         configuration = std::make_unique<Configuration>();

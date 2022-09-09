@@ -7,6 +7,13 @@
               cppLanguageStandard="20">
   <MAINGROUP id="ZsZZye" name="Foresight">
     <GROUP id="{8F0BF33F-7252-0D90-7199-A2C31DCA02A3}" name="Source">
+      <FILE id="n2pKNW" name="NoteProcessor.cpp" compile="1" resource="0"
+            file="Source/NoteProcessor.cpp"/>
+      <FILE id="cDNttO" name="NoteProcessor.h" compile="0" resource="0" file="Source/NoteProcessor.h"/>
+      <FILE id="uF3Jdj" name="OutputListNode.cpp" compile="1" resource="0"
+            file="Source/OutputListNode.cpp"/>
+      <FILE id="AIPk7V" name="OutputListNode.h" compile="0" resource="0"
+            file="Source/OutputListNode.h"/>
       <FILE id="BZrka3" name="InputTreeRootNode.cpp" compile="1" resource="0"
             file="Source/InputTreeRootNode.cpp"/>
       <FILE id="i53gvi" name="InputTreeRootNode.h" compile="0" resource="0"

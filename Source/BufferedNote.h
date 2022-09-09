@@ -12,6 +12,7 @@ public:
 	int pitch;
 	int velocity;
 	unsigned long long startTime;
+	int endDelay = 0;
 	std::optional<unsigned long long> endTime;
 	std::optional<unsigned long long> length();
 	bool hasEnd();

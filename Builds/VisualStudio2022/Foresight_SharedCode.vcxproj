@@ -141,6 +141,8 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\NoteProcessor.cpp"/>
+    <ClCompile Include="..\..\Source\OutputListNode.cpp"/>
     <ClCompile Include="..\..\Source\InputTreeRootNode.cpp"/>
     <ClCompile Include="..\..\Source\InputTreeNodeFactory.cpp"/>
     <ClCompile Include="..\..\Source\InputTreeTagNode.cpp"/>
@@ -2307,6 +2309,8 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_extra.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\NoteProcessor.h"/>
+    <ClInclude Include="..\..\Source\OutputListNode.h"/>
     <ClInclude Include="..\..\Source\InputTreeRootNode.h"/>
     <ClInclude Include="..\..\Source\InputTreeNodeFactory.h"/>
     <ClInclude Include="..\..\Source\InputTreeTagNode.h"/>

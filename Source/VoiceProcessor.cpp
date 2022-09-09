@@ -1,11 +1,10 @@
 #include "VoiceProcessor.h"
 #include "PluginProcessor.h"
 #include "NoteContext.h"
+#include "NoteProcessor.h"
 
-VoiceProcessor::VoiceProcessor(int bufferSizeSamples)
+VoiceProcessor::VoiceProcessor()
 {
-	this->bufferSizeSamples = bufferSizeSamples;
-
 #if DEBUG
 	debugFile.open("E:/VoiceProcDebug.log", std::ios::out | std::ios::app);
 #endif
@@ -93,15 +92,20 @@ void VoiceProcessor::reset()
 		delete(entry);
 	}
 
+	readHeadPosition = 0;
+
 	bufferedNotes.clear();
-	unprocessedBuffer.clear();
 	lastWrittenNote.reset();
 	heldNoteAtWritePosition = nullptr;
-	readHeadPosition = 0;
+	previousNoteAtWritePosition.reset();
+	previousNoteAtReadPosition.reset();
+	unprocessedBuffer.clear();
 }
 
 void VoiceProcessor::updateConfiguration(Configuration* configuration)
 {
+	reset();
+	this->bufferSizeSamples = configuration->getLatencySamples();
 	this->configuration = configuration;
 }
 
@@ -122,7 +126,7 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 	// Read from the buffer
 
 	// Controller data
-	while (!unprocessedBuffer.empty() && unprocessedBuffer.front().time == getReadPosition()) {
+	while (!unprocessedBuffer.empty() && unprocessedBuffer.front().time <= getReadPosition()) {
 		juce::MidiMessage message = unprocessedBuffer.front().message;
 		if (message.isController()) readPositionCCStates[message.getControllerNumber()] = message.getControllerValue();
 
@@ -134,7 +138,7 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 	for (size_t i = 0; i < bufferedNotes.size(); i++)
 	{
 		BufferedNote* note = bufferedNotes[i];
-		if (note->endTime == getReadPosition()) {
+		if (note->endTime && note->endTime.value() + note->endDelay <= getReadPosition()) {
 			output.emplace_back(juce::MidiMessage::noteOff(channel, note->pitch));
 			bufferedNotes.erase(bufferedNotes.begin() + i);
 			previousNoteAtReadPosition = *note;
@@ -147,10 +151,18 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 		if (note->startTime == getReadPosition()) {
 			// Process note that's about to play - everything but start delay is processed here
 			NoteContext context = NoteContext(note, previousNoteAtReadPosition, readPositionCCStates);
+			std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
+			NoteProcessor noteProcessor = NoteProcessor(note, configuration, tags, channel);
+			std::vector<juce::MidiMessage> results = noteProcessor.getResults();
 
-			output.emplace_back(juce::MidiMessage::noteOn(channel, note->pitch, (juce::uint8)note->velocity));
+			for (const auto& message : results) {
+				output.emplace_back(message);
+			}
 		}
 	}
+
+	// Advance the head
+	readHeadPosition++;
 
 	// Write to the buffer
 	if (enteredMessages.has_value()) {
@@ -159,10 +171,10 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 				unprocessedBuffer.emplace_back(message, getWritePosition());
 				if (message.isController()) writePositionCCStates[message.getControllerNumber()] = message.getControllerValue();
 			}
-			else if (message.isNoteOff()) { // Note off
+			else if (message.isNoteOff() && heldNoteAtWritePosition) { // Note off
 				heldNoteAtWritePosition->endTime = getWritePosition();
 				lastWrittenNote = *heldNoteAtWritePosition;
-				previousNoteAtReadPosition = *heldNoteAtWritePosition;
+				previousNoteAtWritePosition = *heldNoteAtWritePosition;
 				heldNoteAtWritePosition = nullptr;
 			}
 			else if (message.isNoteOn()) { // Note on
@@ -172,13 +184,20 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 
 				// Process new note - only start delay is processed here
 				NoteContext context = NoteContext(newNote, previousNoteAtWritePosition, writePositionCCStates);
-				configuration->processNote(context);
+				std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
+				NoteProcessor noteProcessor = NoteProcessor(newNote, configuration, tags, channel);
+				noteProcessor.applyStartDelay();
+
+#if DEBUG
+				debugFile << "Tags: ";
+				for (const auto& tag : context.getTags()) {
+					debugFile << tag << " ";
+				}
+				debugFile << std::endl;
+#endif
 			}
 		}
 	}
-
-	// Advance the head
-	readHeadPosition++;
 
 	return output;
 }

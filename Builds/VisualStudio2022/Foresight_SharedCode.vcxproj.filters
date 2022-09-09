@@ -577,6 +577,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\NoteProcessor.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\OutputListNode.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\InputTreeRootNode.cpp">
       <Filter>Foresight\Source</Filter>
     </ClCompile>
@@ -2925,6 +2931,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\NoteProcessor.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\OutputListNode.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\InputTreeRootNode.h">
       <Filter>Foresight\Source</Filter>
     </ClInclude>

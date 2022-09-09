@@ -12,7 +12,7 @@
 
 class VoiceProcessor {
 public:
-	VoiceProcessor(int bufferSizeSamples);
+	VoiceProcessor();
 	VoiceProcessor(const VoiceProcessor& other);
 	~VoiceProcessor();
 	juce::MidiBuffer processBuffer(const juce::MidiBuffer& buffer, int channel, int lengthSamples);
