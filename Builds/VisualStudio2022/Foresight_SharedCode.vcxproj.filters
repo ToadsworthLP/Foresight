@@ -577,6 +577,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\ConfigParserUtil.cpp">
+      <Filter>Foresight\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\NoteProcessor.cpp">
       <Filter>Foresight\Source</Filter>
     </ClCompile>
@@ -2931,6 +2934,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\ConfigParserUtil.h">
+      <Filter>Foresight\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\NoteProcessor.h">
       <Filter>Foresight\Source</Filter>
     </ClInclude>

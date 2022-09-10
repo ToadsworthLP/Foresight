@@ -9,10 +9,10 @@ public:
 	InputTreeSwitchNode(const juce::XmlElement& source);
 	NoteContext& visit(NoteContext& context) override;
 private:
-	enum TargetType { CC, VELOCITY, LEGATO, LENGTH };
+	enum TargetType { CC, VELOCITY, LEGATO, LENGTH, NOTE };
 
 	std::vector<std::tuple<InputTreeCase, std::vector<std::unique_ptr<IInputTreeNode>>>> children;
-	int ccNumber;
+	int targetNumber;
 	TargetType target;
 
 	int getTargetValue(NoteContext& context);

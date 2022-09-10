@@ -30,10 +30,10 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 	for (auto& entry : eventsPerSample) { // For each group...
 		int time = entry.first;
 
-		// ...copy over everything that's not a note
+		// ...copy over everything that's not a note or that's outside the range
 		for (auto& message : entry.second)
 		{
-			if (!message.isNoteOnOrOff()) {
+			if (!message.isNoteOnOrOff() || (message.isNoteOnOrOff() && !configuration->isInRange(message.getNoteNumber()))) {
 				message.setChannel(1);
 				processedBuffer.addEvent(message, time);
 			}
@@ -42,7 +42,7 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 		// ...look for a note-off first
 		for (auto& message : entry.second)
 		{
-			if (message.isNoteOff() && heldNote.has_value() && heldNote == message.getNoteNumber()) {
+			if (message.isNoteOff() && configuration->isInRange(message.getNoteNumber()) && heldNote.has_value() && heldNote == message.getNoteNumber()) {
 				heldNote.reset();
 
 				message.setChannel(1);
@@ -55,7 +55,7 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 		// ...handle note-on
 		for (auto& message : entry.second)
 		{
-			if (message.isNoteOn())
+			if (message.isNoteOn() && configuration->isInRange(message.getNoteNumber()))
 			{
 				// If there's already a playing note, stop it
 				if (heldNote.has_value())
@@ -74,24 +74,6 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 				break;
 			}
 		}
-
-		//if (heldNote.has_value()) continue; // ...ignore everything if a note is still currently held...
-
-		// ...or queue the next-best note-on if not
-		//for (auto message : entry.second)
-		//{
-		//	if (message.isNoteOn()) {
-		//		heldNote = message.getNoteNumber();
-		//		currentVoiceCount++;
-
-		//		message.setChannel(1);
-		//		processedBuffer.addEvent(message, time);
-
-		//		break; // Discard the rest
-		//	}
-		//}
-
-
 	}
 
 	return processedBuffer;
@@ -105,4 +87,9 @@ int VoiceManager::getCurrentVoiceCount()
 void VoiceManager::reset()
 {
 	heldNote.reset();
+}
+
+void VoiceManager::updateConfiguration(Configuration* configuration)
+{
+	this->configuration = configuration;
 }

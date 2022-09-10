@@ -5,11 +5,6 @@
 #include "BufferedMidiMessage.h"
 #include "Configuration.h"
 
-#if DEBUG
-#include <iostream>
-#include <fstream>
-#endif
-
 class VoiceProcessor {
 public:
 	VoiceProcessor();
@@ -31,6 +26,8 @@ private:
 	std::optional<BufferedNote> previousNoteAtReadPosition;
 	int writePositionCCStates[128] = { 0 };
 	int readPositionCCStates[128] = { 0 };
+	int writePositionHeldNotes[128] = { 0 };
+	int readPositionHeldNotes[128] = { 0 };
 
 	std::vector<BufferedMidiMessage> unprocessedBuffer;
 
@@ -38,8 +35,4 @@ private:
 	unsigned long long getWritePosition();
 
 	std::vector<juce::MidiMessage> processSample(const std::optional<std::vector<juce::MidiMessage>>& enteredMessages, int channel);
-
-#if DEBUG
-	std::ofstream debugFile;
-#endif
 };

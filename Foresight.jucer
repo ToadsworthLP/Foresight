@@ -7,6 +7,10 @@
               cppLanguageStandard="20">
   <MAINGROUP id="ZsZZye" name="Foresight">
     <GROUP id="{8F0BF33F-7252-0D90-7199-A2C31DCA02A3}" name="Source">
+      <FILE id="pwFFO2" name="ConfigParserUtil.cpp" compile="1" resource="0"
+            file="Source/ConfigParserUtil.cpp"/>
+      <FILE id="MduqnJ" name="ConfigParserUtil.h" compile="0" resource="0"
+            file="Source/ConfigParserUtil.h"/>
       <FILE id="n2pKNW" name="NoteProcessor.cpp" compile="1" resource="0"
             file="Source/NoteProcessor.cpp"/>
       <FILE id="cDNttO" name="NoteProcessor.h" compile="0" resource="0" file="Source/NoteProcessor.h"/>
@@ -79,7 +83,7 @@
         <CONFIGURATION isDebug="1" name="Debug" targetName="Foresight" enableIncrementalLinking="1"
                        enablePluginBinaryCopyStep="1" vst3BinaryLocation="E:\Projects\JUCE\JUCE Build Output\"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="Foresight" enablePluginBinaryCopyStep="1"
-                       enableIncrementalLinking="1" vst3BinaryLocation="E:\Projects\JUCE\JUCE Build Output\"/>
+                       vst3BinaryLocation="E:\Projects\JUCE\JUCE Build Output\" useRuntimeLibDLL="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../Tools/JUCE/modules"/>

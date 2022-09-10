@@ -28,17 +28,10 @@ ForesightAudioProcessor::ForesightAudioProcessor()
     voiceProcessors.reserve(16);
 
     if(!configuration) setDefaultConfiguration();
-
-#if DEBUG
-    debugFile.open("E:/MainDebug.log", std::ios::out | std::ios::app);
-#endif
 }
 
 ForesightAudioProcessor::~ForesightAudioProcessor()
 {
-#if DEBUG
-    debugFile.close();
-#endif
 }
 
 //==============================================================================
@@ -116,10 +109,6 @@ void ForesightAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     {
         voiceProcessors.emplace_back();
     }
-
-#if DEBUG
-    debugFile << "Latency samples: " << configuration->getLatencySamples() << std::endl;
-#endif
 }
 
 void ForesightAudioProcessor::releaseResources()
@@ -164,12 +153,6 @@ void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     auto playheadInfo = getPlayHead()->getPosition();
     bool isPlaying = playheadInfo->getIsPlaying();
 
-#if DEBUG
-    if (isPlaying && !lastPlayingState) debugFile << "Playback started" << std::endl;
-
-    if (!isPlaying && lastPlayingState) debugFile << "Playback stopped" << std::endl;
-#endif
-
     buffer.clear();
 
     // Clear everything if it was just stopped or started
@@ -183,10 +166,6 @@ void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         }
 
         inputMidi.swapWith(noteStopBuffer); // Also send note off if it was stopped
-
-#if DEBUG
-        debugFile << "Note off sent on reset" << std::endl;
-#endif
     }
     else if (isPlaying && !lastPlayingState) {
         clearState();
@@ -277,12 +256,20 @@ bool ForesightAudioProcessor::setConfiguration(const std::string& configurationX
         configuration = std::make_unique<Configuration>(configurationXml);
         configuration->updateSampleRate(lastSampleRate);
 
+        voiceManager->updateConfiguration(configuration.get());
         for (auto& processor : voiceProcessors) processor.updateConfiguration(configuration.get());
 
         setLatencySamples(configuration->getLatencySamples());
     }
     catch (const std::exception& e) {
         configuration = std::make_unique<Configuration>();
+        configuration->updateSampleRate(lastSampleRate);
+
+        voiceManager->updateConfiguration(configuration.get());
+        for (auto& processor : voiceProcessors) processor.updateConfiguration(configuration.get());
+
+        setLatencySamples(configuration->getLatencySamples());
+
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Configuration Error", "Failed to load configuration: \n" + std::string(e.what()), "Ok", nullptr, nullptr);
         success = false;
     }
@@ -330,10 +317,6 @@ void ForesightAudioProcessor::clearState()
     {
         voiceProcessor.reset();
     }
-
-#if DEBUG
-    debugFile << "Reset! " << std::endl;
-#endif
 }
 
 //==============================================================================

@@ -5,17 +5,10 @@
 
 VoiceProcessor::VoiceProcessor()
 {
-#if DEBUG
-	debugFile.open("E:/VoiceProcDebug.log", std::ios::out | std::ios::app);
-#endif
 }
 
 VoiceProcessor::VoiceProcessor(const VoiceProcessor& other)
 {
-#if DEBUG
-	debugFile << "Copy constructor invoked!" << std::endl;
-#endif
-
 	bufferSizeSamples = other.bufferSizeSamples;
 	readHeadPosition = other.readHeadPosition;
 
@@ -31,9 +24,6 @@ VoiceProcessor::VoiceProcessor(const VoiceProcessor& other)
 
 VoiceProcessor::~VoiceProcessor()
 {
-#if DEBUG
-	debugFile.close();
-#endif
 	reset();
 }
 
@@ -72,16 +62,6 @@ juce::MidiBuffer VoiceProcessor::processBuffer(const juce::MidiBuffer& buffer, i
 			outputBuffer.addEvent(message, i);
 		}
 	}
-
-	//// This just copies everything to the output
-	//for (const auto metadata : buffer) {
-	//	auto message = metadata.getMessage();
-
-	//	if (message.getChannel() != channel) continue;
-
-	//	const auto time = metadata.samplePosition;
-	//	outputBuffer.addEvent(message, time);
-	//}
 
 	return outputBuffer;
 }
@@ -125,10 +105,12 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 
 	// Read from the buffer
 
-	// Controller data
+	// Controller data or notes outside range
 	while (!unprocessedBuffer.empty() && unprocessedBuffer.front().time <= getReadPosition()) {
 		juce::MidiMessage message = unprocessedBuffer.front().message;
 		if (message.isController()) readPositionCCStates[message.getControllerNumber()] = message.getControllerValue();
+		if (message.isNoteOn()) readPositionHeldNotes[message.getNoteNumber()] = message.getVelocity();
+		if (message.isNoteOff()) readPositionHeldNotes[message.getNoteNumber()] = 0;
 
 		output.emplace_back(unprocessedBuffer.front().message);
 		unprocessedBuffer.erase(unprocessedBuffer.begin());
@@ -150,7 +132,7 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 	for (const auto& note : bufferedNotes) {
 		if (note->startTime == getReadPosition()) {
 			// Process note that's about to play - everything but start delay is processed here
-			NoteContext context = NoteContext(note, previousNoteAtReadPosition, readPositionCCStates);
+			NoteContext context = NoteContext(note, previousNoteAtReadPosition, readPositionCCStates, readPositionHeldNotes);
 			std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
 			NoteProcessor noteProcessor = NoteProcessor(note, configuration, tags, channel);
 			std::vector<juce::MidiMessage> results = noteProcessor.getResults();
@@ -167,9 +149,11 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 	// Write to the buffer
 	if (enteredMessages.has_value()) {
 		for (const auto& message : enteredMessages.value()) {
-			if (!message.isNoteOnOrOff()) { // Controller data
+			if (!message.isNoteOnOrOff() || (message.isNoteOnOrOff() && !configuration->isInRange(message.getNoteNumber()))) { // Controller data or notes outside range
 				unprocessedBuffer.emplace_back(message, getWritePosition());
 				if (message.isController()) writePositionCCStates[message.getControllerNumber()] = message.getControllerValue();
+				if (message.isNoteOn()) writePositionHeldNotes[message.getNoteNumber()] = message.getVelocity();
+				if (message.isNoteOff()) writePositionHeldNotes[message.getNoteNumber()] = -1;
 			}
 			else if (message.isNoteOff() && heldNoteAtWritePosition) { // Note off
 				heldNoteAtWritePosition->endTime = getWritePosition();
@@ -183,18 +167,10 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 				heldNoteAtWritePosition = newNote;
 
 				// Process new note - only start delay is processed here
-				NoteContext context = NoteContext(newNote, previousNoteAtWritePosition, writePositionCCStates);
+				NoteContext context = NoteContext(newNote, previousNoteAtWritePosition, writePositionCCStates, writePositionHeldNotes);
 				std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
 				NoteProcessor noteProcessor = NoteProcessor(newNote, configuration, tags, channel);
 				noteProcessor.applyStartDelay();
-
-#if DEBUG
-				debugFile << "Tags: ";
-				for (const auto& tag : context.getTags()) {
-					debugFile << tag << " ";
-				}
-				debugFile << std::endl;
-#endif
 			}
 		}
 	}

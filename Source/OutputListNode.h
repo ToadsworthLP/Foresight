@@ -18,7 +18,4 @@ private:
 	TargetType target;
 	int ccNumber = 0;
 	int value = 0;
-
-	// Adapted from https://forum.juce.com/t/midimessage-keynametonumber/9904
-	int keyNameToNumber(const juce::String& keyName, const int octaveForMiddleC);
 };

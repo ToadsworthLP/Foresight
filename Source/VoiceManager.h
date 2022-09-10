@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JuceHeader.h"
+#include "Configuration.h"
 
 class VoiceManager {
 public:
@@ -25,6 +26,8 @@ public:
 	/// </summary>
 	void reset();
 
+	void updateConfiguration(Configuration* configuration);
 private:
 	std::optional<int> heldNote;
+	Configuration* configuration;
 };

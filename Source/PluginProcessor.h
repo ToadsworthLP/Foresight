@@ -14,11 +14,6 @@
 #include "Versioning.h"
 #include "Configuration.h"
 
-#if DEBUG
-#include <iostream>
-#include <fstream>
-#endif
-
 #define OUTPUT_CHANNEL_COUNT 16
 
 //==============================================================================
@@ -89,10 +84,6 @@ private:
     std::function<void(const std::string&, const  std::string&, const std::string&)> updateGuiCallback;
 
     std::atomic_bool isCurrentlyInsideProcessBlock = false;
-
-#if DEBUG
-    std::ofstream debugFile;
-#endif
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ForesightAudioProcessor)
