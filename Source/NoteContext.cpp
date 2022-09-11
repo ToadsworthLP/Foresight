@@ -25,7 +25,8 @@ int NoteContext::getHeldNoteVelocity(const int number)
 
 bool NoteContext::isLegato()
 {
-	return previousNote.has_value() && llabs(note->startTime - previousNote->endTime.value()) <= 16;
+	// 64 samples should definitely be enough to catch a legato even on inaccurate DAWs without creating unintentional legato transitions
+	return previousNote.has_value() && previousNote->allowLegato && llabs(note->startTime - previousNote->endTime.value()) <= 64;
 }
 
 std::optional<unsigned long long> NoteContext::getLength()

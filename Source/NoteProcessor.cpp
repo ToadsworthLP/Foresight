@@ -7,21 +7,23 @@ NoteProcessor::NoteProcessor(BufferedNote* note, Configuration* configuration, c
 	this->channel = channel;
 	
 	for (const auto& tag : tags) {
-		std::optional<OutputListNode> node = configuration->getOutputNode(tag);
-		if (node.has_value()) {
-			switch (node->getTargetType()) {
+		for (auto& node : configuration->getOutputNodes(tag)) {
+			switch (node.getTargetType()) {
 			case OutputListNode::CC:
-				addBeforeNote(juce::MidiMessage::controllerEvent(channel, node->getCCNumber(), node->getValue()));
+				addBeforeNote(juce::MidiMessage::controllerEvent(channel, node.getCCNumber(), node.getValue()));
 				break;
 			case OutputListNode::NOTE:
-				addBeforeNote(juce::MidiMessage::noteOn(channel, node->getValue(), juce::uint8(64)));
-				addAfterNote(juce::MidiMessage::noteOff(channel, node->getValue()));
+				addBeforeNote(juce::MidiMessage::noteOn(channel, node.getValue(), juce::uint8(64)));
+				addAfterNote(juce::MidiMessage::noteOff(channel, node.getValue()));
 				break;
 			case OutputListNode::START:
-				addStartDelay(node->getValue());
+				addStartDelay(node.getValue());
 				break;
 			case OutputListNode::END:
-				addEndDelay(node->getValue());
+				addEndDelay(node.getValue());
+				break;
+			case OutputListNode::LEGATO:
+				note->allowLegato = true;
 				break;
 			}
 		}
@@ -55,6 +57,16 @@ void NoteProcessor::applyStartDelay()
 	target->startTime += startDelaySamples;
 }
 
+int NoteProcessor::getStartDelaySamples()
+{
+	return startDelaySamples;
+}
+
+int NoteProcessor::getEndDelaySamples()
+{
+	return endDelaySamples;
+}
+
 std::vector<juce::MidiMessage> NoteProcessor::getResults()
 {
 	target->endDelay += endDelaySamples;
@@ -71,5 +83,5 @@ std::vector<juce::MidiMessage> NoteProcessor::getResults()
 		results.emplace_back(message);
 	}
 
-	return results;
+ 	return results;
 }

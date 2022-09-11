@@ -185,7 +185,64 @@ void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         juce::MidiBuffer channelBuffers[16];
         for (int i = 0; i < 16; i++)
         {
-            channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples());
+            channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples(), false);
+        }
+
+        // Merge the buffers
+        juce::MidiBuffer mergedOutputBuffer;
+        for (const juce::MidiBuffer& channelBuffer : channelBuffers)
+        {
+            mergedOutputBuffer.addEvents(channelBuffer, 0, -1, 0);
+        }
+
+        inputMidi.swapWith(mergedOutputBuffer);
+    }
+
+    lastPlayingState = isPlaying;
+
+    isCurrentlyInsideProcessBlock = false;
+}
+
+void ForesightAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi)
+{
+    isCurrentlyInsideProcessBlock = true;
+
+    auto playheadInfo = getPlayHead()->getPosition();
+    bool isPlaying = playheadInfo->getIsPlaying();
+
+    buffer.clear();
+
+    // Clear everything if it was just stopped or started
+    if (!isPlaying && lastPlayingState) {
+        clearState();
+
+        juce::MidiBuffer noteStopBuffer;
+        for (int i = 0; i < 16; i++)
+        {
+            noteStopBuffer.addEvent(juce::MidiMessage::allNotesOff(i + 1), 0);
+        }
+
+        inputMidi.swapWith(noteStopBuffer); // Also send note off if it was stopped
+    }
+    else if (isPlaying && !lastPlayingState) {
+        clearState();
+    }
+
+#if DEBUG
+    if (true)
+#else
+    // Bypass all processing if the host is not playing
+    if (isPlaying)
+#endif
+    {
+        // Split the input into a maximum of 16 monophonic voices
+        juce::MidiBuffer splitBuffer = voiceManager->processBuffer(inputMidi);
+
+        // Process each voice seperately
+        juce::MidiBuffer channelBuffers[16];
+        for (int i = 0; i < 16; i++)
+        {
+            channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples(), true);
         }
 
         // Merge the buffers

@@ -9,6 +9,9 @@ public:
 	NoteProcessor(BufferedNote* note, Configuration* configuration, const std::unordered_set<std::string>& tags, int channel);
 
 	void applyStartDelay();
+	int getStartDelaySamples();
+	int getEndDelaySamples();
+
 	std::vector<juce::MidiMessage> getResults();
 private:
 	double sampleRate;

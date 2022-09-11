@@ -8,7 +8,7 @@ public:
 	OutputListNode();
 	OutputListNode(const juce::XmlElement& source);
 
-	enum TargetType { CC, NOTE, START, END };
+	enum TargetType { CC, NOTE, START, END, LEGATO };
 	TargetType getTargetType();
 	int getCCNumber();
 	int getValue();

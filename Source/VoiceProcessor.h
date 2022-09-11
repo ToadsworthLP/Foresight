@@ -10,7 +10,7 @@ public:
 	VoiceProcessor();
 	VoiceProcessor(const VoiceProcessor& other);
 	~VoiceProcessor();
-	juce::MidiBuffer processBuffer(const juce::MidiBuffer& buffer, int channel, int lengthSamples);
+	juce::MidiBuffer processBuffer(const juce::MidiBuffer& buffer, int channel, int lengthSamples, bool bypassed);
 	void reset();
 	void updateConfiguration(Configuration* configuration);
 private:
@@ -34,5 +34,5 @@ private:
 	unsigned long long getReadPosition();
 	unsigned long long getWritePosition();
 
-	std::vector<juce::MidiMessage> processSample(const std::optional<std::vector<juce::MidiMessage>>& enteredMessages, int channel);
+	std::vector<juce::MidiMessage> processSample(const std::optional<std::vector<juce::MidiMessage>>& enteredMessages, int channel, bool bypassed);
 };

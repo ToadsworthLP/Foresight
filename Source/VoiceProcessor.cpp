@@ -27,7 +27,7 @@ VoiceProcessor::~VoiceProcessor()
 	reset();
 }
 
-juce::MidiBuffer VoiceProcessor::processBuffer(const juce::MidiBuffer& buffer, int channel, int lengthSamples)
+juce::MidiBuffer VoiceProcessor::processBuffer(const juce::MidiBuffer& buffer, int channel, int lengthSamples, bool bypassed)
 {
 	juce::MidiBuffer outputBuffer;
 
@@ -52,10 +52,10 @@ juce::MidiBuffer VoiceProcessor::processBuffer(const juce::MidiBuffer& buffer, i
 	{
 		std::vector<juce::MidiMessage> output;
 		if (eventsPerSample.contains(i)) {
-			output = processSample(std::optional<std::vector<juce::MidiMessage>>(eventsPerSample[i]), channel);
+			output = processSample(std::optional<std::vector<juce::MidiMessage>>(eventsPerSample[i]), channel, bypassed);
 		}
 		else {
-			output = processSample(std::optional<std::vector<juce::MidiMessage>>(), channel);
+			output = processSample(std::optional<std::vector<juce::MidiMessage>>(), channel, bypassed);
 		}
 
 		for (const auto message : output) {
@@ -99,20 +99,20 @@ unsigned long long VoiceProcessor::getWritePosition()
 	return readHeadPosition + bufferSizeSamples;
 }
 
-std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional<std::vector<juce::MidiMessage>>& enteredMessages, int channel)
+std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional<std::vector<juce::MidiMessage>>& enteredMessages, int channel, bool bypassed)
 {
 	std::vector<juce::MidiMessage> output;
 
 	// Read from the buffer
 
-	// Controller data or notes outside range
+	// Controller data, bypassed messages or notes outside range
 	while (!unprocessedBuffer.empty() && unprocessedBuffer.front().time <= getReadPosition()) {
 		juce::MidiMessage message = unprocessedBuffer.front().message;
 		if (message.isController()) readPositionCCStates[message.getControllerNumber()] = message.getControllerValue();
 		if (message.isNoteOn()) readPositionHeldNotes[message.getNoteNumber()] = message.getVelocity();
 		if (message.isNoteOff()) readPositionHeldNotes[message.getNoteNumber()] = 0;
 
-		output.emplace_back(unprocessedBuffer.front().message);
+		if(!configuration->isBlocked(message)) output.emplace_back(unprocessedBuffer.front().message);
 		unprocessedBuffer.erase(unprocessedBuffer.begin());
 	}
 
@@ -137,6 +137,13 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 			NoteProcessor noteProcessor = NoteProcessor(note, configuration, tags, channel);
 			std::vector<juce::MidiMessage> results = noteProcessor.getResults();
 
+#if DEBUG
+			DBG("Read Note " << note->pitch << ": ");
+			for (const auto& tag : tags) {
+				DBG(tag << " ");
+			}
+#endif
+
 			for (const auto& message : results) {
 				output.emplace_back(message);
 			}
@@ -149,7 +156,9 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 	// Write to the buffer
 	if (enteredMessages.has_value()) {
 		for (const auto& message : enteredMessages.value()) {
-			if (!message.isNoteOnOrOff() || (message.isNoteOnOrOff() && !configuration->isInRange(message.getNoteNumber()))) { // Controller data or notes outside range
+			if (bypassed) {
+				unprocessedBuffer.emplace_back(message, getWritePosition());
+			} else if (!message.isNoteOnOrOff() || (message.isNoteOnOrOff() && !configuration->isInRange(message.getNoteNumber()))) { // Controller data or notes outside range
 				unprocessedBuffer.emplace_back(message, getWritePosition());
 				if (message.isController()) writePositionCCStates[message.getControllerNumber()] = message.getControllerValue();
 				if (message.isNoteOn()) writePositionHeldNotes[message.getNoteNumber()] = message.getVelocity();
@@ -171,6 +180,23 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 				std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
 				NoteProcessor noteProcessor = NoteProcessor(newNote, configuration, tags, channel);
 				noteProcessor.applyStartDelay();
+
+				// Re-time events that should probably happen at the same time as the note
+   				if (std::abs(noteProcessor.getStartDelaySamples()) > 0) {
+					for (auto& unprocessedMsg : unprocessedBuffer) { // ugh
+						auto a = std::llabs(getWritePosition() - unprocessedMsg.time);
+						// 512 samples or about 10ms at 48000kHz is a very generous window, so it's probably even somewhat playable
+						if (std::llabs(getWritePosition() - unprocessedMsg.time) < 512) {
+							unprocessedMsg.time = newNote->startTime;
+						}
+					}
+				}
+#if DEBUG
+				DBG("Write Note " << newNote->pitch << ": ");
+				for (const auto& tag : tags) {
+					DBG(tag << " ");
+				}
+#endif
 			}
 		}
 	}

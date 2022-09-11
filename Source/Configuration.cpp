@@ -33,10 +33,21 @@ Configuration::Configuration(const std::string& xml)
 
 		// Range
 		for (const auto& rangeElement : settingsRootElement->getChildWithTagNameIterator("range")) {
-			std::string rangeModeText = rangeElement->getStringAttribute("mode", "above").toStdString();
-			int* targetVariable = rangeModeText == "below" ? &rangeUpperBoundary : &rangeLowerBoundary;
+			std::string rangeModeText = rangeElement->getStringAttribute("boundary", "lower").toStdString();
+			int* targetVariable = rangeModeText == "upper" ? &rangeUpperBoundary : &rangeLowerBoundary;
 			int noteNumber = ConfigParserUtil::keyNameToNumber(rangeElement->getAllSubText(), 3);
 			*targetVariable = noteNumber;
+		}
+
+		// Blocklist
+		for (const auto& blockElement : settingsRootElement->getChildWithTagNameIterator("block")) {
+			juce::String targetText = blockElement->getAllSubText();
+			if (targetText.startsWith("CC")) {
+				blocked.insert(targetText.trim().toStdString());
+			}
+			else {
+				blocked.insert(std::to_string(ConfigParserUtil::keyNameToNumber(targetText, 3)));
+			}
 		}
 	}
 
@@ -58,7 +69,7 @@ Configuration::Configuration(const std::string& xml)
 		std::string tagName = tagElement->getStringAttribute("name").toStdString();
 
 		for (const auto& setElement : tagElement->getChildIterator()) {
-			outputList[tagName] = OutputListNode(*setElement);
+			outputList[tagName].emplace_back(*setElement);
 		}
 	}
 }
@@ -98,14 +109,26 @@ bool Configuration::isInRange(int noteNumber)
 	return noteNumber >= rangeLowerBoundary && noteNumber <= rangeUpperBoundary;
 }
 
+bool Configuration::isBlocked(const juce::MidiMessage& message)
+{
+	if (message.isController()) {
+		std::string ccString = "CC" + std::to_string(message.getControllerNumber());
+		return blocked.contains(ccString);
+	}
+	else if (message.isNoteOnOrOff()) {
+		return blocked.contains(std::to_string(message.getNoteNumber()));
+	}
+
+	return false;
+}
+
 std::unordered_set<std::string> Configuration::getTagsForNote(NoteContext& context)
 {
 	inputTreeRoot->visit(context);
 	return context.getTags();
 }
 
-std::optional<OutputListNode> Configuration::getOutputNode(const std::string& tag)
+std::vector<OutputListNode> Configuration::getOutputNodes(const std::string& tag)
 {
-	if (!outputList.contains(tag)) return std::optional<OutputListNode>();
 	return outputList[tag];
 }

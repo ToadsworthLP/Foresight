@@ -16,9 +16,10 @@ public:
 	void updateSampleRate(double sampleRate);
 	int getLatencySamples();
 	bool isInRange(int noteNumber);
+	bool isBlocked(const juce::MidiMessage& message);
 
 	std::unordered_set<std::string> getTagsForNote(NoteContext& context);
-	std::optional<OutputListNode> getOutputNode(const std::string& tag);
+	std::vector<OutputListNode> getOutputNodes(const std::string& tag);
 private:
 	int version;
 	double lastSampleRate;
@@ -30,5 +31,6 @@ private:
 	int rangeUpperBoundary = INT_MAX;
 
 	std::unique_ptr<IInputTreeNode> inputTreeRoot;
-	std::map<std::string, OutputListNode> outputList;
+	std::map<std::string, std::vector<OutputListNode>> outputList;
+	std::unordered_set<std::string> blocked;
 };

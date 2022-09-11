@@ -15,6 +15,7 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
     if (targetStr == "note") target = NOTE;
     else if (targetStr == "start") target = START;
     else if (targetStr == "end") target = END;
+    else if (targetStr == "legato") target = LEGATO;
     else {
         if (targetStr.starts_with("CC")) {
             std::string trimmed = targetStr.substr(2, targetStr.length());
@@ -30,7 +31,7 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
     if (target == NOTE) {
         value = ConfigParserUtil::keyNameToNumber(juce::String(valueStr), 3);
     }
-    else {
+    else if (target != LEGATO) {
         value = std::stoi(valueStr);
     }
 }

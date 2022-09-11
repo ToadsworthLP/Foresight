@@ -16,4 +16,6 @@ public:
 	std::optional<unsigned long long> endTime;
 	std::optional<unsigned long long> length();
 	bool hasEnd();
+
+	bool allowLegato = false;
 };
