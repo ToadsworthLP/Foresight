@@ -40,6 +40,8 @@ ForesightAudioProcessorEditor::ForesightAudioProcessorEditor (ForesightAudioProc
 
 ForesightAudioProcessorEditor::~ForesightAudioProcessorEditor()
 {
+    audioProcessor.currentWindowWidth = getWidth();
+    audioProcessor.currentWindowHeight = getHeight();
 }
 
 //==============================================================================
