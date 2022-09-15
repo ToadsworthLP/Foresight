@@ -28,6 +28,8 @@ private:
 	int readPositionCCStates[128] = { 0 };
 	int writePositionHeldNotes[128] = { 0 };
 	int readPositionHeldNotes[128] = { 0 };
+	int readPositionProgram = 0;
+	int writePositionProgram = 0;
 
 	std::vector<BufferedMidiMessage> unprocessedBuffer;
 

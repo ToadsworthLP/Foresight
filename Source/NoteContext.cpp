@@ -1,11 +1,12 @@
 #include "NoteContext.h"
 
-NoteContext::NoteContext(BufferedNote* note, const std::optional<BufferedNote>& previousNote, int ccStates[128], int heldNotes[128])
+NoteContext::NoteContext(BufferedNote* note, const std::optional<BufferedNote>& previousNote, int ccStates[128], int heldNotes[128], int program)
 {
 	this->note = note;
 	this->previousNote = previousNote;
 	this->ccStates = ccStates;
 	this->heldNotes = heldNotes;
+	this->program = program;
 }
 
 int NoteContext::getVelocity()
@@ -16,6 +17,11 @@ int NoteContext::getVelocity()
 int NoteContext::getCCValue(const int number)
 {
 	return ccStates[number];
+}
+
+int NoteContext::getActiveProgram()
+{
+	return program;
 }
 
 int NoteContext::getHeldNoteVelocity(const int number)

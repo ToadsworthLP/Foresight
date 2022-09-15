@@ -16,6 +16,9 @@ NoteProcessor::NoteProcessor(BufferedNote* note, Configuration* configuration, c
 				addBeforeNote(juce::MidiMessage::noteOn(channel, node.getValue(), juce::uint8(64)));
 				addAfterNote(juce::MidiMessage::noteOff(channel, node.getValue()));
 				break;
+			case OutputListNode::PROGRAM:
+				addBeforeNote(juce::MidiMessage::programChange(channel, node.getValue()));
+				break;
 			case OutputListNode::START:
 				addStartDelay(node.getValue());
 				break;

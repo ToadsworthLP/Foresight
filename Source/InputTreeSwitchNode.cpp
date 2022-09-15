@@ -12,6 +12,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
     if (targetStr == "legato") target = LEGATO;
     else if (targetStr == "velocity") target = VELOCITY;
     else if (targetStr == "length") target = LENGTH;
+    else if (targetStr == "program") target = PROGRAM;
     else {
         if (targetStr.starts_with("CC")) {
             std::string trimmed = targetStr.substr(2, targetStr.length());
@@ -83,6 +84,9 @@ int InputTreeSwitchNode::getTargetValue(NoteContext& context)
             break;
         case NOTE:
             return context.getHeldNoteVelocity(targetNumber);
+            break;
+        case PROGRAM:
+            return context.getActiveProgram();
             break;
     }
 }

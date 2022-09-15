@@ -16,6 +16,7 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
     else if (targetStr == "start") target = START;
     else if (targetStr == "end") target = END;
     else if (targetStr == "legato") target = LEGATO;
+    else if (targetStr == "program") target = PROGRAM;
     else {
         if (targetStr.starts_with("CC")) {
             std::string trimmed = targetStr.substr(2, targetStr.length());
