@@ -71,6 +71,9 @@ public:
     void updateGui();
     void setUpdateGuiCallback(const std::function<void(const std::string&, const  std::string&, const std::string&)>& callback);
 
+    int currentWindowWidth;
+    int currentWindowHeight;
+
 private:
     double lastSampleRate = 0;
 

@@ -280,8 +280,20 @@ void ForesightAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     std::unique_ptr<juce::XmlElement> state = std::make_unique<juce::XmlElement>("foresight-state");
     state->setAttribute("version", CURRENT_STATE_VERSION);
+
     juce::XmlElement* sourceElement = state->createNewChildElement("source");
     sourceElement->addTextElement(configuration->getSourceXML());
+
+    juce::XmlElement* windowSizeElement = state->createNewChildElement("window");
+
+    auto editor = getActiveEditor();
+    if (editor) {
+        currentWindowWidth = editor->getWidth();
+        currentWindowHeight = editor->getHeight();
+    }
+
+    windowSizeElement->setAttribute("width", currentWindowWidth);
+    windowSizeElement->setAttribute("height", currentWindowHeight);
 
     copyXmlToBinary(*state, destData);
 }
@@ -295,6 +307,16 @@ void ForesightAudioProcessor::setStateInformation (const void* data, int sizeInB
     {
         std::string source = state->getChildByName("source")->getAllSubText().toStdString();
         setConfiguration(source);
+
+        juce::XmlElement* windowSizeElement = state->getChildByName("window");
+        if (windowSizeElement) {
+            currentWindowWidth = windowSizeElement->getIntAttribute("width");
+            currentWindowHeight = windowSizeElement->getIntAttribute("height");
+        }
+        else {
+            currentWindowWidth = 400;
+            currentWindowHeight = 400;
+        }
     }
     else {
         setDefaultConfiguration();

@@ -13,14 +13,12 @@
 ForesightAudioProcessorEditor::ForesightAudioProcessorEditor (ForesightAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 400);
+    addChildComponent(tabbedComponent);
+    tabbedComponent.setVisible(true);
 
     mainComponent = std::make_unique<GuiMainComponent>();
     editorComponent = std::make_unique<GuiEditorComponent>();
 
-    tabbedComponent.setBounds(getBounds());
     tabbedComponent.addTab("Home", getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId), &*mainComponent, false, 0);
     tabbedComponent.addTab("Configure", getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId), &*editorComponent, false, 1);
 
@@ -33,6 +31,11 @@ ForesightAudioProcessorEditor::ForesightAudioProcessorEditor (ForesightAudioProc
     });
 
     audioProcessor.updateGui();
+
+    setResizable(true, true);
+    setResizeLimits(300, 300, INT_MAX, INT_MAX);
+
+    setSize(audioProcessor.currentWindowWidth, audioProcessor.currentWindowHeight);
 }
 
 ForesightAudioProcessorEditor::~ForesightAudioProcessorEditor()
@@ -40,15 +43,14 @@ ForesightAudioProcessorEditor::~ForesightAudioProcessorEditor()
 }
 
 //==============================================================================
-void ForesightAudioProcessorEditor::paint (juce::Graphics& g)
+void ForesightAudioProcessorEditor::paint(juce::Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-
-    addAndMakeVisible(tabbedComponent);
 }
 
 void ForesightAudioProcessorEditor::resized()
 {
+    tabbedComponent.setBoundsRelative(0, 0, 1, 1);
 }
 
 void ForesightAudioProcessorEditor::updateGui(const std::string& configName, const std::string& configLatency, const std::string& configSource)
