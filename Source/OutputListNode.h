@@ -2,6 +2,7 @@
 
 #include "JuceHeader.h"
 #include "BufferedNote.h"
+#include "NoteContext.h"
 
 class OutputListNode {
 public:
@@ -11,11 +12,12 @@ public:
 	enum TargetType { CC, NOTE, START, END, LEGATO, PROGRAM };
 	TargetType getTargetType();
 	int getCCNumber();
-	int getValue();
+	int getValue(const NoteContext& context);
 
 private:
-
 	TargetType target;
 	int ccNumber = 0;
 	int value = 0;
+	std::optional<int> readCC;
+	std::optional<float> readValueMultiplier;
 };

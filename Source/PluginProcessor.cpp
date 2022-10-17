@@ -107,7 +107,8 @@ void ForesightAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 
     for (size_t i = 0; i < 16; i++)
     {
-        voiceProcessors.emplace_back();
+        VoiceProcessor& processor = voiceProcessors.emplace_back();
+        processor.updateConfiguration(configuration.get());
     }
 }
 

@@ -33,7 +33,24 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
         value = ConfigParserUtil::keyNameToNumber(juce::String(valueStr), 3);
     }
     else if (target != LEGATO) {
-        value = std::stoi(valueStr);
+        if (valueStr.starts_with("CC")) {
+            int multiplierStartIndex = valueStr.find('*');
+
+            if (multiplierStartIndex > 0) {
+                std::string trimmed = valueStr.substr(2, valueStr.length());
+                readCC = std::stoi(trimmed);
+
+                std::string multiplierStr = valueStr.substr(multiplierStartIndex + 1, valueStr.length());
+                readValueMultiplier = std::stof(multiplierStr);
+            }
+            else {
+                std::string trimmed = valueStr.substr(2, valueStr.length());
+                readCC = std::stoi(trimmed);
+            }
+        }
+        else {
+            value = std::stoi(valueStr);
+        }
     }
 }
 
@@ -47,7 +64,13 @@ int OutputListNode::getCCNumber()
     return ccNumber;
 }
 
-int OutputListNode::getValue()
+int OutputListNode::getValue(const NoteContext& context)
 {
-    return value;
+    if (readCC.has_value()) {
+        int output = std::round(context.getCCValue(readCC.value()) * readValueMultiplier.value_or(1.0f));
+        return output;
+    }
+    else {
+        return value;
+    }
 }

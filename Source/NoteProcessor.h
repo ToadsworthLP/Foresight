@@ -6,7 +6,7 @@
 
 class NoteProcessor {
 public:
-	NoteProcessor(BufferedNote* note, Configuration* configuration, const std::unordered_set<std::string>& tags, int channel);
+	NoteProcessor(const NoteContext& note, Configuration* configuration, const std::unordered_set<std::string>& tags, int channel);
 
 	void applyStartDelay();
 	int getStartDelaySamples();

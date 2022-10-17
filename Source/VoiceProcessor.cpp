@@ -135,7 +135,7 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 			// Process note that's about to play - everything but start delay is processed here
 			NoteContext context = NoteContext(note, previousNoteAtReadPosition, readPositionCCStates, readPositionHeldNotes, readPositionProgram);
 			std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
-			NoteProcessor noteProcessor = NoteProcessor(note, configuration, tags, channel);
+			NoteProcessor noteProcessor = NoteProcessor(context, configuration, tags, channel);
 			std::vector<juce::MidiMessage> results = noteProcessor.getResults();
 
 #if DEBUG
@@ -180,7 +180,7 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 				// Process new note - only start delay is processed here
 				NoteContext context = NoteContext(newNote, previousNoteAtWritePosition, writePositionCCStates, writePositionHeldNotes, writePositionProgram);
 				std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
-				NoteProcessor noteProcessor = NoteProcessor(newNote, configuration, tags, channel);
+				NoteProcessor noteProcessor = NoteProcessor(context, configuration, tags, channel);
 				noteProcessor.applyStartDelay();
 
 				// Re-time events that should probably happen at the same time as the note

@@ -1,8 +1,8 @@
 #include "NoteProcessor.h"
 
-NoteProcessor::NoteProcessor(BufferedNote* note, Configuration* configuration, const std::unordered_set<std::string>& tags, int channel)
+NoteProcessor::NoteProcessor(const NoteContext& note, Configuration* configuration, const std::unordered_set<std::string>& tags, int channel)
 {
-	this->target = note;
+	this->target = note.getNote();
 	this->sampleRate = configuration->getSampleRate();
 	this->channel = channel;
 	
@@ -10,23 +10,23 @@ NoteProcessor::NoteProcessor(BufferedNote* note, Configuration* configuration, c
 		for (auto& node : configuration->getOutputNodes(tag)) {
 			switch (node.getTargetType()) {
 			case OutputListNode::CC:
-				addBeforeNote(juce::MidiMessage::controllerEvent(channel, node.getCCNumber(), node.getValue()));
+				addBeforeNote(juce::MidiMessage::controllerEvent(channel, node.getCCNumber(), node.getValue(note)));
 				break;
 			case OutputListNode::NOTE:
-				addBeforeNote(juce::MidiMessage::noteOn(channel, node.getValue(), juce::uint8(64)));
-				addAfterNote(juce::MidiMessage::noteOff(channel, node.getValue()));
+				addBeforeNote(juce::MidiMessage::noteOn(channel, node.getValue(note), juce::uint8(64)));
+				addAfterNote(juce::MidiMessage::noteOff(channel, node.getValue(note)));
 				break;
 			case OutputListNode::PROGRAM:
-				addBeforeNote(juce::MidiMessage::programChange(channel, node.getValue()));
+				addBeforeNote(juce::MidiMessage::programChange(channel, node.getValue(note)));
 				break;
 			case OutputListNode::START:
-				addStartDelay(node.getValue());
+				addStartDelay(node.getValue(note));
 				break;
 			case OutputListNode::END:
-				addEndDelay(node.getValue());
+				addEndDelay(node.getValue(note));
 				break;
 			case OutputListNode::LEGATO:
-				note->allowLegato = true;
+				note.getNote()->allowLegato = true;
 				break;
 			}
 		}
