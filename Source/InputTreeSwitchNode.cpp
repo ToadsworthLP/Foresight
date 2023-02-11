@@ -1,31 +1,32 @@
 #include "InputTreeSwitchNode.h"
-#include "InputTreeNodeFactory.h"
 #include "ConfigParserUtil.h"
+#include "InputTreeNodeFactory.h"
 
-InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
-{
+InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source) {
     if (!source.hasAttribute("target")) {
         throw std::exception("Encountered a <switch> node without the required target attribute.");
     }
 
     std::string targetStr = source.getStringAttribute("target").toStdString();
-    if (targetStr == "legato") target = LEGATO;
-    else if (targetStr == "velocity") target = VELOCITY;
-    else if (targetStr == "length") target = LENGTH;
-    else if (targetStr == "program") target = PROGRAM;
-    else {
+    if (targetStr == "legato") {
+        target = LEGATO;
+    } else if (targetStr == "velocity") {
+        target = VELOCITY;
+    } else if (targetStr == "length") {
+        target = LENGTH;
+    } else if (targetStr == "program") {
+        target = PROGRAM;
+    } else {
         if (targetStr.starts_with("CC")) {
             std::string trimmed = targetStr.substr(2, targetStr.length());
             targetNumber = std::stoi(trimmed);
 
             target = CC;
-        }
-        else {
+        } else {
             try {
                 targetNumber = ConfigParserUtil::keyNameToNumber(targetStr, 3);
                 target = NOTE;
-            }
-            catch (std::exception& e) {
+            } catch (std::exception& e) {
                 throw std::exception("Encountered a <switch> node target attribute with an invalid value.");
             }
         }
@@ -40,8 +41,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
                 IInputTreeNode* child = InputTreeNodeFactory::make(*caseChildElement);
                 std::get<1>(children[insertIndex]).emplace_back(child);
             }
-        }
-        else {
+        } else {
             int insertIndex = children.size();
             children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement), std::vector<std::unique_ptr<IInputTreeNode>>()));
 
@@ -51,8 +51,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
     }
 }
 
-NoteContext& InputTreeSwitchNode::visit(NoteContext& context)
-{
+NoteContext& InputTreeSwitchNode::visit(NoteContext& context) {
     for (const auto& cases : children) {
         InputTreeCase condition = std::get<0>(cases);
 
@@ -66,27 +65,25 @@ NoteContext& InputTreeSwitchNode::visit(NoteContext& context)
     return context;
 }
 
-int InputTreeSwitchNode::getTargetValue(NoteContext& context)
-{
-    switch (target)
-    {
-        case VELOCITY:
-            return context.getVelocity();
-            break;
-        case LEGATO:
-            return context.isLegato();
-            break;
-        case LENGTH:
-            return context.getLength().has_value() ? context.getLength().value() % INT_MAX : INT_MAX;
-            break;
-        case CC:
-            return context.getCCValue(targetNumber);
-            break;
-        case NOTE:
-            return context.getHeldNoteVelocity(targetNumber);
-            break;
-        case PROGRAM:
-            return context.getActiveProgram();
-            break;
+int InputTreeSwitchNode::getTargetValue(NoteContext& context) {
+    switch (target) {
+    case VELOCITY:
+        return context.getVelocity();
+        break;
+    case LEGATO:
+        return context.isLegato();
+        break;
+    case LENGTH:
+        return context.getLength().has_value() ? context.getLength().value() % INT_MAX : INT_MAX;
+        break;
+    case CC:
+        return context.getCCValue(targetNumber);
+        break;
+    case NOTE:
+        return context.getHeldNoteVelocity(targetNumber);
+        break;
+    case PROGRAM:
+        return context.getActiveProgram();
+        break;
     }
 }

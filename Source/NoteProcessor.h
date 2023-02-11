@@ -1,32 +1,33 @@
 #pragma once
 
-#include "JuceHeader.h"
 #include "BufferedNote.h"
 #include "Configuration.h"
+#include "JuceHeader.h"
 
 class NoteProcessor {
-public:
-	NoteProcessor(const NoteContext& note, Configuration* configuration, const std::unordered_set<std::string>& tags, int channel);
+  public:
+    NoteProcessor(const NoteContext& note, Configuration* configuration, const std::unordered_set<std::string>& tags, int channel);
 
-	void applyStartDelay();
-	int getStartDelaySamples();
-	int getEndDelaySamples();
+    void applyStartDelay();
+    int getStartDelaySamples();
+    int getEndDelaySamples();
 
-	std::vector<juce::MidiMessage> getResults();
-private:
-	double sampleRate;
-	int channel;
+    std::vector<juce::MidiMessage> getResults();
 
-	int startDelaySamples = 0;
-	int endDelaySamples = 0;
+  private:
+    double sampleRate;
+    int channel;
 
-	BufferedNote* target;
-	std::vector<juce::MidiMessage> beforeNoteMessages;
-	std::vector<juce::MidiMessage> afterNoteMessages;
+    int startDelaySamples = 0;
+    int endDelaySamples = 0;
 
-	void addStartDelay(double delay);
-	void addEndDelay(double delay);
+    BufferedNote* target;
+    std::vector<juce::MidiMessage> beforeNoteMessages;
+    std::vector<juce::MidiMessage> afterNoteMessages;
 
-	void addBeforeNote(juce::MidiMessage message);
-	void addAfterNote(juce::MidiMessage message);
+    void addStartDelay(double delay);
+    void addEndDelay(double delay);
+
+    void addBeforeNote(juce::MidiMessage message);
+    void addAfterNote(juce::MidiMessage message);
 };

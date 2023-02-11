@@ -22,89 +22,81 @@
 
 #include "GuiEditorComponent.h"
 
-
 //[MiscUserDefs] You can add your own user definitions and misc code here...
 //[/MiscUserDefs]
 
 //==============================================================================
-GuiEditorComponent::GuiEditorComponent ()
-{
+GuiEditorComponent::GuiEditorComponent() {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
 
-    setName ("EditorComponent");
-    juce_config_textEditor.reset (new juce::TextEditor ("configEditor"));
-    addAndMakeVisible (juce_config_textEditor.get());
-    juce_config_textEditor->setMultiLine (true);
-    juce_config_textEditor->setReturnKeyStartsNewLine (true);
-    juce_config_textEditor->setReadOnly (false);
-    juce_config_textEditor->setScrollbarsShown (true);
-    juce_config_textEditor->setCaretVisible (true);
-    juce_config_textEditor->setPopupMenuEnabled (true);
-    juce_config_textEditor->setColour (juce::TextEditor::outlineColourId, juce::Colour (0x00000000));
-    juce_config_textEditor->setText (TRANS("Paste your configuration XML here..."));
+    setName("EditorComponent");
+    juce_config_textEditor.reset(new juce::TextEditor("configEditor"));
+    addAndMakeVisible(juce_config_textEditor.get());
+    juce_config_textEditor->setMultiLine(true);
+    juce_config_textEditor->setReturnKeyStartsNewLine(true);
+    juce_config_textEditor->setReadOnly(false);
+    juce_config_textEditor->setScrollbarsShown(true);
+    juce_config_textEditor->setCaretVisible(true);
+    juce_config_textEditor->setPopupMenuEnabled(true);
+    juce_config_textEditor->setColour(juce::TextEditor::outlineColourId, juce::Colour(0x00000000));
+    juce_config_textEditor->setText(TRANS("Paste your configuration XML here..."));
 
-    juce_applyConfig_textButton.reset (new juce::TextButton ("applyConfigButton"));
-    addAndMakeVisible (juce_applyConfig_textButton.get());
-    juce_applyConfig_textButton->setButtonText (TRANS("Apply"));
-    juce_applyConfig_textButton->addListener (this);
-
+    juce_applyConfig_textButton.reset(new juce::TextButton("applyConfigButton"));
+    addAndMakeVisible(juce_applyConfig_textButton.get());
+    juce_applyConfig_textButton->setButtonText(TRANS("Apply"));
+    juce_applyConfig_textButton->addListener(this);
 
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (300, 300);
-
+    setSize(300, 300);
 
     //[Constructor] You can add your own custom stuff here..
     //[/Constructor]
 }
 
-GuiEditorComponent::~GuiEditorComponent()
-{
+GuiEditorComponent::~GuiEditorComponent() {
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
 
     juce_config_textEditor = nullptr;
     juce_applyConfig_textButton = nullptr;
 
-
     //[Destructor]. You can add your own custom destruction code here..
     //[/Destructor]
 }
 
 //==============================================================================
-void GuiEditorComponent::paint (juce::Graphics& g)
-{
+void GuiEditorComponent::paint(juce::Graphics& g) {
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
-    g.fillAll (juce::Colour (0xff323e44));
+    g.fillAll(juce::Colour(0xff323e44));
 
     //[UserPaint] Add your own custom painting code here..
     //[/UserPaint]
 }
 
-void GuiEditorComponent::resized()
-{
+void GuiEditorComponent::resized() {
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    juce_config_textEditor->setBounds (0, 0, getWidth() - 0, getHeight() - 32);
-    juce_applyConfig_textButton->setBounds (0, getHeight() - 28, proportionOfWidth (1.0000f), 24);
+    juce_config_textEditor->setBounds(0, 0, getWidth() - 0, getHeight() - 32);
+    juce_applyConfig_textButton->setBounds(0, getHeight() - 28, proportionOfWidth(1.0000f), 24);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
 
-void GuiEditorComponent::buttonClicked (juce::Button* buttonThatWasClicked)
-{
+void GuiEditorComponent::buttonClicked(juce::Button* buttonThatWasClicked) {
     //[UserbuttonClicked_Pre]
     //[/UserbuttonClicked_Pre]
 
-    if (buttonThatWasClicked == juce_applyConfig_textButton.get())
-    {
+    if (buttonThatWasClicked == juce_applyConfig_textButton.get()) {
         //[UserButtonCode_juce_applyConfig_textButton] -- add your button handler code here..
-        if(configUpdatedCallback) configUpdatedCallback(juce_config_textEditor->getText().toStdString());
+        if (configUpdatedCallback) {
+            configUpdatedCallback(juce_config_textEditor->getText().toStdString());
+        }
         //[/UserButtonCode_juce_applyConfig_textButton]
     }
 
@@ -112,19 +104,14 @@ void GuiEditorComponent::buttonClicked (juce::Button* buttonThatWasClicked)
     //[/UserbuttonClicked_Post]
 }
 
-
-
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-void GuiEditorComponent::setConfigUpdatedCallback(std::function<void(std::string)> callback)
-{
+void GuiEditorComponent::setConfigUpdatedCallback(std::function<void(std::string)> callback) {
     configUpdatedCallback = callback;
 }
-void GuiEditorComponent::setDisplayedConfig(const std::string& value)
-{
+void GuiEditorComponent::setDisplayedConfig(const std::string& value) {
     juce_config_textEditor->setText(value);
 }
 //[/MiscUserCode]
-
 
 //==============================================================================
 #if 0
@@ -153,7 +140,5 @@ END_JUCER_METADATA
 */
 #endif
 
-
 //[EndFile] You can add extra defines here...
 //[/EndFile]
-

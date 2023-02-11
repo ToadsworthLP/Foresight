@@ -1,134 +1,131 @@
 #include "Configuration.h"
-#include "InputTreeRootNode.h"
 #include "ConfigParserUtil.h"
+#include "InputTreeRootNode.h"
 
-Configuration::Configuration() : Configuration("<foresight version=\"0\" name=\"None\">\n    <settings>\n        <latency>0</latency>\n    </settings>\n    <input></input>\n    <output></output>\n</foresight>")
-{
+Configuration::Configuration() :
+    Configuration("<foresight version=\"0\" name=\"None\">\n    <settings>\n        <latency>0</latency>\n    </settings>\n    <input></input>\n    <output></output>\n</foresight>") {
 }
 
-Configuration::Configuration(const std::string& xml)
-{
-	this->xml = xml;
+Configuration::Configuration(const std::string& xml) {
+    this->xml = xml;
 
-	std::unique_ptr<juce::XmlDocument> xmlDocument = std::make_unique<juce::XmlDocument>(xml);
-	std::unique_ptr<juce::XmlElement> rootElement = xmlDocument->getDocumentElementIfTagMatches("foresight");
+    std::unique_ptr<juce::XmlDocument> xmlDocument = std::make_unique<juce::XmlDocument>(xml);
+    std::unique_ptr<juce::XmlElement> rootElement = xmlDocument->getDocumentElementIfTagMatches("foresight");
 
-	// Header
+    // Header
 
-	if (!rootElement) throw std::exception(xmlDocument->getLastParseError().toStdString().c_str());
+    if (!rootElement) {
+        throw std::exception(xmlDocument->getLastParseError().toStdString().c_str());
+    }
 
-	version = rootElement->getIntAttribute("version", 0);
-	name = rootElement->getStringAttribute("name").toStdString();
+    version = rootElement->getIntAttribute("version", 0);
+    name = rootElement->getStringAttribute("name").toStdString();
 
-	if (version > CURRENT_CONFIG_VERSION) throw std::exception("This configuration was created for a newer version of Foresight. Please update the plugin to use this configuration.");
+    if (version > CURRENT_CONFIG_VERSION) {
+        throw std::exception("This configuration was created for a newer version of Foresight. Please update the plugin to use this configuration.");
+    }
 
-	// Settings
+    // Settings
 
-	juce::XmlElement* settingsRootElement = rootElement->getChildByName("settings");
+    juce::XmlElement* settingsRootElement = rootElement->getChildByName("settings");
 
-	if (settingsRootElement) {
-		// Latency
-		juce::XmlElement* latencySettingElement = settingsRootElement->getChildByName("latency");
-		if (latencySettingElement) latency = std::stod(latencySettingElement->getAllSubText().toStdString()) / 1000.0;
+    if (settingsRootElement) {
+        // Latency
+        juce::XmlElement* latencySettingElement = settingsRootElement->getChildByName("latency");
+        if (latencySettingElement) {
+            latency = std::stod(latencySettingElement->getAllSubText().toStdString()) / 1000.0;
+        }
 
-		// Range
-		for (const auto& rangeElement : settingsRootElement->getChildWithTagNameIterator("range")) {
-			std::string rangeModeText = rangeElement->getStringAttribute("boundary", "lower").toStdString();
-			int* targetVariable = rangeModeText == "upper" ? &rangeUpperBoundary : &rangeLowerBoundary;
-			int noteNumber = ConfigParserUtil::keyNameToNumber(rangeElement->getAllSubText(), 3);
-			*targetVariable = noteNumber;
-		}
+        // Range
+        for (const auto& rangeElement : settingsRootElement->getChildWithTagNameIterator("range")) {
+            std::string rangeModeText = rangeElement->getStringAttribute("boundary", "lower").toStdString();
+            int* targetVariable = rangeModeText == "upper" ? &rangeUpperBoundary : &rangeLowerBoundary;
+            int noteNumber = ConfigParserUtil::keyNameToNumber(rangeElement->getAllSubText(), 3);
+            *targetVariable = noteNumber;
+        }
 
-		// Blocklist
-		for (const auto& blockElement : settingsRootElement->getChildWithTagNameIterator("block")) {
-			juce::String targetText = blockElement->getAllSubText();
-			if (targetText.startsWith("CC")) {
-				blocked.insert(targetText.trim().toStdString());
-			}
-			else {
-				blocked.insert(std::to_string(ConfigParserUtil::keyNameToNumber(targetText, 3)));
-			}
-		}
-	}
+        // Blocklist
+        for (const auto& blockElement : settingsRootElement->getChildWithTagNameIterator("block")) {
+            juce::String targetText = blockElement->getAllSubText();
+            if (targetText.startsWith("CC")) {
+                blocked.insert(targetText.trim().toStdString());
+            } else {
+                blocked.insert(std::to_string(ConfigParserUtil::keyNameToNumber(targetText, 3)));
+            }
+        }
+    }
 
-	// Input
+    // Input
 
-	juce::XmlElement* inputTreeRootElement = rootElement->getChildByName("input");
+    juce::XmlElement* inputTreeRootElement = rootElement->getChildByName("input");
 
-	if (!inputTreeRootElement) throw std::exception("No <input> node found.");
+    if (!inputTreeRootElement) {
+        throw std::exception("No <input> node found.");
+    }
 
-	inputTreeRoot = std::make_unique<InputTreeRootNode>(*inputTreeRootElement);
+    inputTreeRoot = std::make_unique<InputTreeRootNode>(*inputTreeRootElement);
 
-	// Output
+    // Output
 
-	juce::XmlElement* outputListRootElement = rootElement->getChildByName("output");
+    juce::XmlElement* outputListRootElement = rootElement->getChildByName("output");
 
-	if (!outputListRootElement) throw std::exception("No <output> node found.");
+    if (!outputListRootElement) {
+        throw std::exception("No <output> node found.");
+    }
 
-	for (const auto& tagElement : outputListRootElement->getChildIterator()) {
-		std::string tagName = tagElement->getStringAttribute("name").toStdString();
+    for (const auto& tagElement : outputListRootElement->getChildIterator()) {
+        std::string tagName = tagElement->getStringAttribute("name").toStdString();
 
-		for (const auto& setElement : tagElement->getChildIterator()) {
-			outputList[tagName].emplace_back(*setElement);
-		}
-	}
+        for (const auto& setElement : tagElement->getChildIterator()) {
+            outputList[tagName].emplace_back(*setElement);
+        }
+    }
 }
 
-std::string Configuration::getSourceXML()
-{
-	return xml;
+std::string Configuration::getSourceXML() {
+    return xml;
 }
 
-std::string Configuration::getName()
-{
-	return name;
+std::string Configuration::getName() {
+    return name;
 }
 
-double Configuration::getLatencySeconds()
-{
-	return latency;
+double Configuration::getLatencySeconds() {
+    return latency;
 }
 
-double Configuration::getSampleRate()
-{
-	return lastSampleRate;
+double Configuration::getSampleRate() {
+    return lastSampleRate;
 }
 
-void Configuration::updateSampleRate(double sampleRate)
-{
-	lastSampleRate = sampleRate;
+void Configuration::updateSampleRate(double sampleRate) {
+    lastSampleRate = sampleRate;
 }
 
-int Configuration::getLatencySamples()
-{
-	return (int)std::round(latency * lastSampleRate);
+int Configuration::getLatencySamples() {
+    return (int)std::round(latency * lastSampleRate);
 }
 
-bool Configuration::isInRange(int noteNumber)
-{
-	return noteNumber >= rangeLowerBoundary && noteNumber <= rangeUpperBoundary;
+bool Configuration::isInRange(int noteNumber) {
+    return noteNumber >= rangeLowerBoundary && noteNumber <= rangeUpperBoundary;
 }
 
-bool Configuration::isBlocked(const juce::MidiMessage& message)
-{
-	if (message.isController()) {
-		std::string ccString = "CC" + std::to_string(message.getControllerNumber());
-		return blocked.contains(ccString);
-	}
-	else if (message.isNoteOnOrOff()) {
-		return blocked.contains(std::to_string(message.getNoteNumber()));
-	}
+bool Configuration::isBlocked(const juce::MidiMessage& message) {
+    if (message.isController()) {
+        std::string ccString = "CC" + std::to_string(message.getControllerNumber());
+        return blocked.contains(ccString);
+    } else if (message.isNoteOnOrOff()) {
+        return blocked.contains(std::to_string(message.getNoteNumber()));
+    }
 
-	return false;
+    return false;
 }
 
-std::unordered_set<std::string> Configuration::getTagsForNote(NoteContext& context)
-{
-	inputTreeRoot->visit(context);
-	return context.getTags();
+std::unordered_set<std::string> Configuration::getTagsForNote(NoteContext& context) {
+    inputTreeRoot->visit(context);
+    return context.getTags();
 }
 
-std::vector<OutputListNode> Configuration::getOutputNodes(const std::string& tag)
-{
-	return outputList[tag];
+std::vector<OutputListNode> Configuration::getOutputNodes(const std::string& tag) {
+    return outputList[tag];
 }

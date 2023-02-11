@@ -6,13 +6,12 @@
   ==============================================================================
 */
 
-#include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
 
 //==============================================================================
-ForesightAudioProcessorEditor::ForesightAudioProcessorEditor (ForesightAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
-{
+ForesightAudioProcessorEditor::ForesightAudioProcessorEditor(ForesightAudioProcessor& p) :
+    AudioProcessorEditor(&p), audioProcessor(p) {
     addChildComponent(tabbedComponent);
     tabbedComponent.setVisible(true);
 
@@ -38,36 +37,31 @@ ForesightAudioProcessorEditor::ForesightAudioProcessorEditor (ForesightAudioProc
     setSize(audioProcessor.currentWindowWidth, audioProcessor.currentWindowHeight);
 }
 
-ForesightAudioProcessorEditor::~ForesightAudioProcessorEditor()
-{
+ForesightAudioProcessorEditor::~ForesightAudioProcessorEditor() {
     audioProcessor.currentWindowWidth = getWidth();
     audioProcessor.currentWindowHeight = getHeight();
 }
 
 //==============================================================================
-void ForesightAudioProcessorEditor::paint(juce::Graphics& g)
-{
+void ForesightAudioProcessorEditor::paint(juce::Graphics& g) {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
-void ForesightAudioProcessorEditor::resized()
-{
+void ForesightAudioProcessorEditor::resized() {
     tabbedComponent.setBoundsRelative(0, 0, 1, 1);
 }
 
-void ForesightAudioProcessorEditor::updateGui(const std::string& configName, const std::string& configLatency, const std::string& configSource)
-{
+void ForesightAudioProcessorEditor::updateGui(const std::string& configName, const std::string& configLatency, const std::string& configSource) {
     if (mainComponent) {
         mainComponent->setDisplayedConfigName(configName);
         mainComponent->setDisplayedLatency(configLatency);
     }
-    
+
     if (editorComponent) {
         editorComponent->setDisplayedConfig(configSource);
     }
 }
 
-void ForesightAudioProcessorEditor::applyButtonClicked(const std::string& configString)
-{
+void ForesightAudioProcessorEditor::applyButtonClicked(const std::string& configString) {
     audioProcessor.setConfiguration(configString);
 }
