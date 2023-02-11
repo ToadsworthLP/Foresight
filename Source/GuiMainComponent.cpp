@@ -22,57 +22,49 @@
 
 #include "GuiMainComponent.h"
 
-
 //[MiscUserDefs] You can add your own user definitions and misc code here...
 //[/MiscUserDefs]
 
 //==============================================================================
-GuiMainComponent::GuiMainComponent ()
-{
+GuiMainComponent::GuiMainComponent() {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
 
-    setName ("MainComponent");
-    juce_currentConfigValue_label.reset (new juce::Label ("currentConfigValue",
-                                                          TRANS("Config Title")));
-    addAndMakeVisible (juce_currentConfigValue_label.get());
-    juce_currentConfigValue_label->setFont (juce::Font (24.00f, juce::Font::plain).withTypefaceStyle ("Regular"));
-    juce_currentConfigValue_label->setJustificationType (juce::Justification::centred);
-    juce_currentConfigValue_label->setEditable (false, false, false);
-    juce_currentConfigValue_label->setColour (juce::TextEditor::textColourId, juce::Colours::black);
-    juce_currentConfigValue_label->setColour (juce::TextEditor::backgroundColourId, juce::Colour (0x00000000));
+    setName("MainComponent");
+    juce_currentConfigValue_label.reset(new juce::Label("currentConfigValue", TRANS("Config Title")));
+    addAndMakeVisible(juce_currentConfigValue_label.get());
+    juce_currentConfigValue_label->setFont(juce::Font(24.00f, juce::Font::plain).withTypefaceStyle("Regular"));
+    juce_currentConfigValue_label->setJustificationType(juce::Justification::centred);
+    juce_currentConfigValue_label->setEditable(false, false, false);
+    juce_currentConfigValue_label->setColour(juce::TextEditor::textColourId, juce::Colours::black);
+    juce_currentConfigValue_label->setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x00000000));
 
-    juce_currentConfigHeading_label.reset (new juce::Label ("currentConfigHeading",
-                                                            TRANS("Loaded Configuration")));
-    addAndMakeVisible (juce_currentConfigHeading_label.get());
-    juce_currentConfigHeading_label->setFont (juce::Font (14.00f, juce::Font::plain).withTypefaceStyle ("Regular"));
-    juce_currentConfigHeading_label->setJustificationType (juce::Justification::centred);
-    juce_currentConfigHeading_label->setEditable (false, false, false);
-    juce_currentConfigHeading_label->setColour (juce::TextEditor::textColourId, juce::Colours::black);
-    juce_currentConfigHeading_label->setColour (juce::TextEditor::backgroundColourId, juce::Colour (0x00000000));
+    juce_currentConfigHeading_label.reset(new juce::Label("currentConfigHeading", TRANS("Loaded Configuration")));
+    addAndMakeVisible(juce_currentConfigHeading_label.get());
+    juce_currentConfigHeading_label->setFont(juce::Font(14.00f, juce::Font::plain).withTypefaceStyle("Regular"));
+    juce_currentConfigHeading_label->setJustificationType(juce::Justification::centred);
+    juce_currentConfigHeading_label->setEditable(false, false, false);
+    juce_currentConfigHeading_label->setColour(juce::TextEditor::textColourId, juce::Colours::black);
+    juce_currentConfigHeading_label->setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x00000000));
 
-    juce_currentLatency_label.reset (new juce::Label ("currentLatency",
-                                                      TRANS("Total latency: xxx ms")));
-    addAndMakeVisible (juce_currentLatency_label.get());
-    juce_currentLatency_label->setFont (juce::Font (14.00f, juce::Font::plain).withTypefaceStyle ("Regular"));
-    juce_currentLatency_label->setJustificationType (juce::Justification::centred);
-    juce_currentLatency_label->setEditable (false, false, false);
-    juce_currentLatency_label->setColour (juce::TextEditor::textColourId, juce::Colours::black);
-    juce_currentLatency_label->setColour (juce::TextEditor::backgroundColourId, juce::Colour (0x00000000));
-
+    juce_currentLatency_label.reset(new juce::Label("currentLatency", TRANS("Total latency: xxx ms")));
+    addAndMakeVisible(juce_currentLatency_label.get());
+    juce_currentLatency_label->setFont(juce::Font(14.00f, juce::Font::plain).withTypefaceStyle("Regular"));
+    juce_currentLatency_label->setJustificationType(juce::Justification::centred);
+    juce_currentLatency_label->setEditable(false, false, false);
+    juce_currentLatency_label->setColour(juce::TextEditor::textColourId, juce::Colours::black);
+    juce_currentLatency_label->setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x00000000));
 
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (300, 300);
-
+    setSize(300, 300);
 
     //[Constructor] You can add your own custom stuff here..
     //[/Constructor]
 }
 
-GuiMainComponent::~GuiMainComponent()
-{
+GuiMainComponent::~GuiMainComponent() {
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
 
@@ -80,49 +72,41 @@ GuiMainComponent::~GuiMainComponent()
     juce_currentConfigHeading_label = nullptr;
     juce_currentLatency_label = nullptr;
 
-
     //[Destructor]. You can add your own custom destruction code here..
     //[/Destructor]
 }
 
 //==============================================================================
-void GuiMainComponent::paint (juce::Graphics& g)
-{
+void GuiMainComponent::paint(juce::Graphics& g) {
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
-    g.fillAll (juce::Colour (0xff323e44));
+    g.fillAll(juce::Colour(0xff323e44));
 
     //[UserPaint] Add your own custom painting code here..
     //[/UserPaint]
 }
 
-void GuiMainComponent::resized()
-{
+void GuiMainComponent::resized() {
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    juce_currentConfigValue_label->setBounds (proportionOfWidth (0.0000f), (getHeight() / 2) + -30, proportionOfWidth (1.0000f), 24);
-    juce_currentConfigHeading_label->setBounds (proportionOfWidth (0.0000f), (getHeight() / 2) + -54, proportionOfWidth (1.0000f), 24);
-    juce_currentLatency_label->setBounds (proportionOfWidth (0.0000f), (getHeight() / 2) + 34, proportionOfWidth (1.0000f), 24);
+    juce_currentConfigValue_label->setBounds(proportionOfWidth(0.0000f), (getHeight() / 2) + -30, proportionOfWidth(1.0000f), 24);
+    juce_currentConfigHeading_label->setBounds(proportionOfWidth(0.0000f), (getHeight() / 2) + -54, proportionOfWidth(1.0000f), 24);
+    juce_currentLatency_label->setBounds(proportionOfWidth(0.0000f), (getHeight() / 2) + 34, proportionOfWidth(1.0000f), 24);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
 
-
-
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-void GuiMainComponent::setDisplayedConfigName(const std::string& value)
-{
+void GuiMainComponent::setDisplayedConfigName(const std::string& value) {
     juce_currentConfigValue_label->setText(value, juce::NotificationType::sendNotification);
 }
 
-void GuiMainComponent::setDisplayedLatency(const std::string& value)
-{
+void GuiMainComponent::setDisplayedLatency(const std::string& value) {
     juce_currentLatency_label->setText(value, juce::NotificationType::sendNotification);
 }
 //[/MiscUserCode]
-
 
 //==============================================================================
 #if 0
@@ -159,7 +143,5 @@ END_JUCER_METADATA
 */
 #endif
 
-
 //[EndFile] You can add extra defines here...
 //[/EndFile]
-

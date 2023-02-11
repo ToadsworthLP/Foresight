@@ -23,8 +23,6 @@
 #include <JuceHeader.h>
 //[/Headers]
 
-
-
 //==============================================================================
 /**
                                                                     //[Comments]
@@ -33,11 +31,10 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class GuiMainComponent  : public juce::Component
-{
-public:
+class GuiMainComponent : public juce::Component {
+  public:
     //==============================================================================
-    GuiMainComponent ();
+    GuiMainComponent();
     ~GuiMainComponent() override;
 
     //==============================================================================
@@ -46,12 +43,10 @@ public:
     void setDisplayedLatency(const std::string& value);
     //[/UserMethods]
 
-    void paint (juce::Graphics& g) override;
+    void paint(juce::Graphics& g) override;
     void resized() override;
 
-
-
-private:
+  private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     //[/UserVariables]
 
@@ -60,11 +55,9 @@ private:
     std::unique_ptr<juce::Label> juce_currentConfigHeading_label;
     std::unique_ptr<juce::Label> juce_currentLatency_label;
 
-
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GuiMainComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GuiMainComponent)
 };
 
 //[EndFile] You can add extra defines here...
 //[/EndFile]
-

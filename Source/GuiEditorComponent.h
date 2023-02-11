@@ -23,8 +23,6 @@
 #include <JuceHeader.h>
 //[/Headers]
 
-
-
 //==============================================================================
 /**
                                                                     //[Comments]
@@ -33,12 +31,11 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class GuiEditorComponent  : public juce::Component,
-                            public juce::Button::Listener
-{
-public:
+class GuiEditorComponent : public juce::Component,
+                           public juce::Button::Listener {
+  public:
     //==============================================================================
-    GuiEditorComponent ();
+    GuiEditorComponent();
     ~GuiEditorComponent() override;
 
     //==============================================================================
@@ -47,13 +44,11 @@ public:
     void setDisplayedConfig(const std::string& value);
     //[/UserMethods]
 
-    void paint (juce::Graphics& g) override;
+    void paint(juce::Graphics& g) override;
     void resized() override;
-    void buttonClicked (juce::Button* buttonThatWasClicked) override;
+    void buttonClicked(juce::Button* buttonThatWasClicked) override;
 
-
-
-private:
+  private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     std::function<void(std::string)> configUpdatedCallback;
     //[/UserVariables]
@@ -62,11 +57,9 @@ private:
     std::unique_ptr<juce::TextEditor> juce_config_textEditor;
     std::unique_ptr<juce::TextButton> juce_applyConfig_textButton;
 
-
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GuiEditorComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GuiEditorComponent)
 };
 
 //[EndFile] You can add extra defines here...
 //[/EndFile]
-

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JuceHeader.h"
 #include "IInputTreeNode.h"
+#include "JuceHeader.h"
 
 class InputTreeNodeFactory {
-public:
-	static IInputTreeNode* make(const juce::XmlElement& source);
+  public:
+    static IInputTreeNode* make(const juce::XmlElement& source);
 };
