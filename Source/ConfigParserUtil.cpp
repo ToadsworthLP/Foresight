@@ -1,6 +1,6 @@
 #include "ConfigParserUtil.h"
 
-int ConfigParserUtil::keyNameToNumber(const juce::String& keyName, const int octaveForMiddleC)
+int ConfigParserUtil::keyNameToNumber(const juce::String& keyName)
 {
     static const char* const noteNames[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "", "Db", "", "Eb", "", "", "Gb", "", "Ab", "", "Bb" };
 

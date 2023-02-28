@@ -133,7 +133,7 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 	for (const auto& note : bufferedNotes) {
 		if (note->startTime == getReadPosition()) {
 			// Process note that's about to play - everything but start delay is processed here
-			NoteContext context = NoteContext(note, previousNoteAtReadPosition, readPositionCCStates, readPositionHeldNotes, readPositionProgram);
+			NoteContext context = NoteContext(note, previousNoteAtReadPosition, readPositionCCStates, readPositionHeldNotes, readPositionProgram, lastKeyswitch);
 			std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
 			NoteProcessor noteProcessor = NoteProcessor(context, configuration, tags, channel);
 			std::vector<juce::MidiMessage> results = noteProcessor.getResults();
@@ -165,6 +165,15 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 				if (message.isNoteOn()) writePositionHeldNotes[message.getNoteNumber()] = message.getVelocity();
 				if (message.isNoteOff()) writePositionHeldNotes[message.getNoteNumber()] = -1;
 				if (message.isProgramChange()) writePositionProgram = message.getProgramChangeNumber();
+				if (configuration->isKeyswitch(message.getNoteNumber())) {
+					lastKeyswitch = message.getNoteNumber();
+
+#ifdef DEBUG
+					if (message.isNoteOn()) {
+						DBG("Keyswitch: " << lastKeyswitch);
+					}
+#endif
+				}
 			}
 			else if (message.isNoteOff() && heldNoteAtWritePosition) { // Note off
 				heldNoteAtWritePosition->endTime = getWritePosition();
@@ -178,7 +187,7 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 				heldNoteAtWritePosition = newNote;
 
 				// Process new note - only start delay is processed here
-				NoteContext context = NoteContext(newNote, previousNoteAtWritePosition, writePositionCCStates, writePositionHeldNotes, writePositionProgram);
+				NoteContext context = NoteContext(newNote, previousNoteAtWritePosition, writePositionCCStates, writePositionHeldNotes, writePositionProgram, lastKeyswitch);
 				std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
 				NoteProcessor noteProcessor = NoteProcessor(context, configuration, tags, channel);
 				noteProcessor.applyStartDelay();

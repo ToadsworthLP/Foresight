@@ -5,11 +5,12 @@
 
 class NoteContext {
 public:
-	NoteContext(BufferedNote* note, const std::optional<BufferedNote>& previousNote, int ccStates[128], int heldNotes[128], int program);
+	NoteContext(BufferedNote* note, const std::optional<BufferedNote>& previousNote, int ccStates[128], int heldNotes[128], int program, int lastKeyswitch);
 
 	int getVelocity() const;
 	int getCCValue(const int number) const;
 	int getActiveProgram() const;
+	int getLastKeyswitch() const;
 	int getHeldNoteVelocity(const int number) const;
 	bool isLegato() const;
 	std::optional<unsigned long long> getLength() const;
@@ -25,4 +26,5 @@ private:
 	int* ccStates;
 	int* heldNotes;
 	int program;
+	int lastKeyswitch;
 };
