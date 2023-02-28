@@ -33,7 +33,7 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 		// ...copy over everything that's not a note or that's outside the range
 		for (auto& message : entry.second)
 		{
-			if (!message.isNoteOnOrOff() || (message.isNoteOnOrOff() && !configuration->isInRange(message.getNoteNumber()))) {
+			if (!message.isNoteOnOrOff() || (message.isNoteOnOrOff() && !configuration->isInRange(message.getNoteNumber()) && !configuration->isKeyswitch(message.getNoteNumber()))) {
 				message.setChannel(1);
 				processedBuffer.addEvent(message, time);
 			}
@@ -42,7 +42,7 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 		// ...look for a note-off first
 		for (auto& message : entry.second)
 		{
-			if (message.isNoteOff() && configuration->isInRange(message.getNoteNumber()) && heldNote.has_value() && heldNote == message.getNoteNumber()) {
+			if (message.isNoteOff() && (configuration->isInRange(message.getNoteNumber()) || configuration->isKeyswitch(message.getNoteNumber())) && heldNote.has_value() && heldNote == message.getNoteNumber()) {
 				heldNote.reset();
 
 				message.setChannel(1);
@@ -55,8 +55,7 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 		// ...handle note-on
 		for (auto& message : entry.second)
 		{
-			if (message.isNoteOn() && configuration->isInRange(message.getNoteNumber()))
-			{
+			if (message.isNoteOn() && (configuration->isInRange(message.getNoteNumber()) || configuration->isKeyswitch(message.getNoteNumber()))) {
 				// If there's already a playing note, stop it
 				if (heldNote.has_value())
 				{
@@ -65,7 +64,6 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 				}
 
 				// Play the new note
-				
 				heldNote = message.getNoteNumber();
 
 				message.setChannel(1);

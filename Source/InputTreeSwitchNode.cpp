@@ -19,10 +19,20 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
             targetNumber = std::stoi(trimmed);
 
             target = CC;
+        }           
+        else if (targetStr.starts_with("KS_")) {
+            std::string trimmed = targetStr.substr(3, targetStr.length());
+            try {
+                targetNumber = ConfigParserUtil::keyNameToNumber(trimmed);
+                target = KEYSWITCH;
+            }
+            catch (std::exception& e) {
+                throw std::exception("Encountered a <switch> node target attribute with an invalid value.");
+            }
         }
         else {
             try {
-                targetNumber = ConfigParserUtil::keyNameToNumber(targetStr, 3);
+                targetNumber = ConfigParserUtil::keyNameToNumber(targetStr);
                 target = NOTE;
             }
             catch (std::exception& e) {
@@ -31,10 +41,15 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
         }
     }
 
+    int keyswitch = -1;
+    if (target == KEYSWITCH) {
+        keyswitch = targetNumber;
+    }
+
     for (const auto& caseEntryElement : source.getChildIterator()) {
         if (caseEntryElement->getTagName() == "case") {
             int insertIndex = children.size();
-            children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement), std::vector<std::unique_ptr<IInputTreeNode>>()));
+            children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement, keyswitch), std::vector<std::unique_ptr<IInputTreeNode>>()));
 
             for (const auto& caseChildElement : caseEntryElement->getChildIterator()) {
                 IInputTreeNode* child = InputTreeNodeFactory::make(*caseChildElement);
@@ -43,7 +58,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
         }
         else {
             int insertIndex = children.size();
-            children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement), std::vector<std::unique_ptr<IInputTreeNode>>()));
+            children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement, keyswitch), std::vector<std::unique_ptr<IInputTreeNode>>()));
 
             IInputTreeNode* child = InputTreeNodeFactory::make(*caseEntryElement);
             std::get<1>(children[insertIndex]).emplace_back(child);
@@ -85,8 +100,13 @@ int InputTreeSwitchNode::getTargetValue(NoteContext& context)
         case NOTE:
             return context.getHeldNoteVelocity(targetNumber);
             break;
+        case KEYSWITCH:
+            return context.getLastKeyswitch();
+            break;
         case PROGRAM:
             return context.getActiveProgram();
             break;
+        default:
+            throw std::exception("Invalid <input> target value");
     }
 }

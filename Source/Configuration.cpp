@@ -35,8 +35,24 @@ Configuration::Configuration(const std::string& xml)
 		for (const auto& rangeElement : settingsRootElement->getChildWithTagNameIterator("range")) {
 			std::string rangeModeText = rangeElement->getStringAttribute("boundary", "lower").toStdString();
 			int* targetVariable = rangeModeText == "upper" ? &rangeUpperBoundary : &rangeLowerBoundary;
-			int noteNumber = ConfigParserUtil::keyNameToNumber(rangeElement->getAllSubText(), 3);
+			int noteNumber = ConfigParserUtil::keyNameToNumber(rangeElement->getAllSubText());
 			*targetVariable = noteNumber;
+
+#ifdef DEBUG
+			DBG("range" << rangeModeText << " : " << noteNumber);
+#endif
+		}
+
+		// Keyswitches
+		for (const auto& keyswitchElement : settingsRootElement->getChildWithTagNameIterator("keyswitches")) {
+			std::string keyswitchModeText = keyswitchElement->getStringAttribute("boundary", "lower").toStdString();
+			int* targetVariable = keyswitchModeText == "upper" ? &keyswitchUpperBoundary : &keyswitchLowerBoundary;
+			int noteNumber = ConfigParserUtil::keyNameToNumber(keyswitchElement->getAllSubText());
+			*targetVariable = noteNumber;
+
+#ifdef DEBUG
+			DBG("keyswitches" << keyswitchModeText << " : " << noteNumber);
+#endif
 		}
 
 		// Blocklist
@@ -46,7 +62,7 @@ Configuration::Configuration(const std::string& xml)
 				blocked.insert(targetText.trim().toStdString());
 			}
 			else {
-				blocked.insert(std::to_string(ConfigParserUtil::keyNameToNumber(targetText, 3)));
+				blocked.insert(std::to_string(ConfigParserUtil::keyNameToNumber(targetText)));
 			}
 		}
 	}
@@ -107,6 +123,11 @@ int Configuration::getLatencySamples()
 bool Configuration::isInRange(int noteNumber)
 {
 	return noteNumber >= rangeLowerBoundary && noteNumber <= rangeUpperBoundary;
+}
+
+bool Configuration::isKeyswitch(int noteNumber)
+{
+	return noteNumber >= keyswitchLowerBoundary && noteNumber <= keyswitchUpperBoundary;
 }
 
 bool Configuration::isBlocked(const juce::MidiMessage& message)

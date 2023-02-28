@@ -1,12 +1,19 @@
 #include "InputTreeCase.h"
 
-InputTreeCase::InputTreeCase(const juce::XmlElement& source)
+InputTreeCase::InputTreeCase(const juce::XmlElement& source, int keyswitch)
 {
-	equals = source.getIntAttribute("equals", -1);
-	greater = source.getIntAttribute("greater", INT_MIN);
-	less = source.getIntAttribute("less", INT_MAX);
+	// keyswitch targets have no 'case' statement, so the 'equals' value
+	// needs to be specified here manually
+	if (keyswitch != -1) {
+		equals = keyswitch;
+	}
+	else {
+		equals = source.getIntAttribute("equals", -1);
+		greater = source.getIntAttribute("greater", INT_MIN);
+		less = source.getIntAttribute("less", INT_MAX);
 
-	alwaysTrue = source.isTextElement();
+		alwaysTrue = source.isTextElement();
+	}
 }
 
 bool InputTreeCase::check(int value)
