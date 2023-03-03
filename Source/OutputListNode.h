@@ -13,6 +13,7 @@ public:
 	TargetType getTargetType();
 	int getCCNumber();
 	int getValue(const NoteContext& context);
+	int getValueRaw() const;
 
 private:
 	TargetType target;

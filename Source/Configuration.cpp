@@ -23,7 +23,6 @@ Configuration::Configuration(const std::string& xml)
 	if (version > CURRENT_CONFIG_VERSION) throw std::exception("This configuration was created for a newer version of Foresight. Please update the plugin to use this configuration.");
 
 	// Settings
-
 	juce::XmlElement* settingsRootElement = rootElement->getChildByName("settings");
 
 	if (settingsRootElement) {
@@ -65,12 +64,24 @@ Configuration::Configuration(const std::string& xml)
 
 	if (!outputListRootElement) throw std::exception("No <output> node found.");
 
+	int maxOutputStartDelay = 0;
 	for (const auto& tagElement : outputListRootElement->getChildIterator()) {
 		std::string tagName = tagElement->getStringAttribute("name").toStdString();
 
 		for (const auto& setElement : tagElement->getChildIterator()) {
-			outputList[tagName].emplace_back(*setElement);
+			auto outputNode = OutputListNode(*setElement);
+			if (outputNode.getTargetType() == OutputListNode::START && std::abs(outputNode.getValueRaw()) > maxOutputStartDelay) {
+				maxOutputStartDelay = std::abs(outputNode.getValueRaw());
+			}
+
+			outputList[tagName].emplace_back(outputNode);
 		}
+	}
+
+	// if the latency isn't set, set it to the absolute value of the
+	// greatest 'start' target of the output nodes
+	if (latency == 0.0 && maxOutputStartDelay != 0) {
+		latency = maxOutputStartDelay / 1000.0;
 	}
 }
 

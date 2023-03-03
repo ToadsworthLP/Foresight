@@ -74,3 +74,8 @@ int OutputListNode::getValue(const NoteContext& context)
         return value;
     }
 }
+
+int OutputListNode::getValueRaw() const
+{
+    return value;
+}
