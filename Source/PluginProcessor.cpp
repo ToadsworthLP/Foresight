@@ -147,65 +147,18 @@ bool ForesightAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts
 }
 #endif
 
-void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi)
+void ForesightAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi)
 {
-    isCurrentlyInsideProcessBlock = true;
-
-    auto playheadInfo = getPlayHead()->getPosition();
-    bool isPlaying = playheadInfo->getIsPlaying();
-
-    buffer.clear();
-
-    // Clear everything if it was just stopped or started
-    if (!isPlaying && lastPlayingState) {
-        clearState();
-
-        juce::MidiBuffer noteStopBuffer;
-        for (int i = 0; i < 16; i++)
-        {
-            noteStopBuffer.addEvent(juce::MidiMessage::allNotesOff(i + 1), 0);
-        }
-
-        inputMidi.swapWith(noteStopBuffer); // Also send note off if it was stopped
-    }
-    else if (isPlaying && !lastPlayingState) {
-        clearState();
-    } 
-    
-#if DEBUG
-    if (true)
-#else
-    // Bypass all processing if the host is not playing
-    if (isPlaying)
-#endif
-    {
-        // Split the input into a maximum of 16 monophonic voices
-        juce::MidiBuffer splitBuffer = voiceManager->processBuffer(inputMidi);
-
-        // Process each voice seperately
-        juce::MidiBuffer channelBuffers[16];
-        for (int i = 0; i < 16; i++)
-        {
-            channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples(), false);
-        }
-
-        // Merge the buffers
-        juce::MidiBuffer mergedOutputBuffer;
-        for (const juce::MidiBuffer& channelBuffer : channelBuffers)
-        {
-            mergedOutputBuffer.addEvents(channelBuffer, 0, -1, 0);
-        }
-
-        inputMidi.swapWith(mergedOutputBuffer);
-    }
-
-    lastPlayingState = isPlaying;
-
-    isCurrentlyInsideProcessBlock = false;
+    processMidi(buffer, inputMidi, false);
 }
 
 void ForesightAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi)
 {
+    processMidi(buffer, inputMidi, true);
+}
+
+void ForesightAudioProcessor::processMidi(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi, bool bypassed)
+{
     isCurrentlyInsideProcessBlock = true;
 
     auto playheadInfo = getPlayHead()->getPosition();
@@ -217,19 +170,24 @@ void ForesightAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buf
     if (!isPlaying && lastPlayingState) {
         clearState();
 
+        // Also send note off messages if it was stopped
         juce::MidiBuffer noteStopBuffer;
-        for (int i = 0; i < 16; i++)
+        for (int channel = 1; channel <= 16; channel++)
         {
-            noteStopBuffer.addEvent(juce::MidiMessage::allNotesOff(i + 1), 0);
+            for (int note = 0; note < 128; note++)
+            {
+                noteStopBuffer.addEvent(juce::MidiMessage::noteOff(channel, note), 0);
+            }
         }
 
-        inputMidi.swapWith(noteStopBuffer); // Also send note off if it was stopped
+        inputMidi.swapWith(noteStopBuffer); 
     }
     else if (isPlaying && !lastPlayingState) {
         clearState();
     }
 
-#if DEBUG
+#ifdef DEBUG
+    // JUCE plugin host never reports that it is playing
     if (true)
 #else
     // Bypass all processing if the host is not playing
@@ -239,11 +197,11 @@ void ForesightAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buf
         // Split the input into a maximum of 16 monophonic voices
         juce::MidiBuffer splitBuffer = voiceManager->processBuffer(inputMidi);
 
-        // Process each voice seperately
+        // Process each voice separately
         juce::MidiBuffer channelBuffers[16];
         for (int i = 0; i < 16; i++)
         {
-            channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples(), true);
+            channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples(), bypassed);
         }
 
         // Merge the buffers
