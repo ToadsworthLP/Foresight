@@ -2,7 +2,7 @@
 #include "InputTreeRootNode.h"
 #include "ConfigParserUtil.h"
 
-Configuration::Configuration() : Configuration("<foresight version=\"0\" name=\"None\">\n    <settings>\n        <latency>0</latency>\n    </settings>\n    <input></input>\n    <output></output>\n</foresight>")
+Configuration::Configuration() : Configuration("<foresight version=\"4\" name=\"None\">\n    <settings>\n        <latency>0</latency>\n    </settings>\n    <input></input>\n    <output></output>\n</foresight>")
 {
 }
 
