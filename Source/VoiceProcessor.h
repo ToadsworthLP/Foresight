@@ -19,6 +19,7 @@ private:
 	int bufferSizeSamples;
 	unsigned long long readHeadPosition = 0;
 
+	int lastKeyswitch = -1;
 	std::vector<BufferedNote*> bufferedNotes;
 	std::optional<BufferedNote> lastWrittenNote;
 	BufferedNote* heldNoteAtWritePosition = nullptr;

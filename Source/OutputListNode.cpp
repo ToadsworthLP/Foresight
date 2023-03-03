@@ -30,7 +30,7 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
     }
 
     if (target == NOTE) {
-        value = ConfigParserUtil::keyNameToNumber(juce::String(valueStr), 3);
+        value = ConfigParserUtil::keyNameToNumber(juce::String(valueStr));
     }
     else if (target != LEGATO) {
         if (valueStr.starts_with("CC")) {
