@@ -5,7 +5,7 @@ file(STRINGS VERSION CURRENT_VERSION)
 
 project(FORESIGHT VERSION ${CURRENT_VERSION})
 
-add_subdirectory(Deps)
+add_subdirectory(deps)
 
 juce_add_plugin(FORESIGHT
     COMPANY_NAME ToadsworthLP
