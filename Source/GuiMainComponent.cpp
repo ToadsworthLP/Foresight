@@ -33,14 +33,16 @@ GuiMainComponent::GuiMainComponent ()
     //[/Constructor_pre]
 
     setName ("MainComponent");
-    juce_currentConfigValue_label.reset (new juce::Label ("currentConfigValue",
-                                                          TRANS("Config Title")));
-    addAndMakeVisible (juce_currentConfigValue_label.get());
-    juce_currentConfigValue_label->setFont (juce::Font (24.00f, juce::Font::plain).withTypefaceStyle ("Regular"));
-    juce_currentConfigValue_label->setJustificationType (juce::Justification::centred);
-    juce_currentConfigValue_label->setEditable (false, false, false);
-    juce_currentConfigValue_label->setColour (juce::TextEditor::textColourId, juce::Colours::black);
-    juce_currentConfigValue_label->setColour (juce::TextEditor::backgroundColourId, juce::Colour (0x00000000));
+
+    juce_pluginVersion_label.reset (new juce::Label ("pluginVersion",
+                                                          TRANS("Plugin Version")));
+    addAndMakeVisible (juce_pluginVersion_label.get());
+    juce_pluginVersion_label->setFont (juce::Font (14.00f, juce::Font::plain).withTypefaceStyle ("Regular"));
+    juce_pluginVersion_label->setJustificationType (juce::Justification::centred);
+    juce_pluginVersion_label->setEditable (false, false, false);
+    juce_pluginVersion_label->setColour (juce::TextEditor::textColourId, juce::Colours::black);
+    juce_pluginVersion_label->setColour (juce::TextEditor::backgroundColourId, juce::Colour (0x00000000));
+    juce_pluginVersion_label->setText (CURRENT_VERSION, juce::NotificationType::dontSendNotification);
 
     juce_currentConfigHeading_label.reset (new juce::Label ("currentConfigHeading",
                                                             TRANS("Loaded Configuration")));
@@ -50,6 +52,15 @@ GuiMainComponent::GuiMainComponent ()
     juce_currentConfigHeading_label->setEditable (false, false, false);
     juce_currentConfigHeading_label->setColour (juce::TextEditor::textColourId, juce::Colours::black);
     juce_currentConfigHeading_label->setColour (juce::TextEditor::backgroundColourId, juce::Colour (0x00000000));
+
+    juce_currentConfigValue_label.reset (new juce::Label ("currentConfigValue",
+                                                          TRANS("Config Title")));
+    addAndMakeVisible (juce_currentConfigValue_label.get());
+    juce_currentConfigValue_label->setFont (juce::Font (24.00f, juce::Font::plain).withTypefaceStyle ("Regular"));
+    juce_currentConfigValue_label->setJustificationType (juce::Justification::centred);
+    juce_currentConfigValue_label->setEditable (false, false, false);
+    juce_currentConfigValue_label->setColour (juce::TextEditor::textColourId, juce::Colours::black);
+    juce_currentConfigValue_label->setColour (juce::TextEditor::backgroundColourId, juce::Colour (0x00000000));
 
     juce_currentLatency_label.reset (new juce::Label ("currentLatency",
                                                       TRANS("Total latency: xxx ms")));
@@ -76,8 +87,9 @@ GuiMainComponent::~GuiMainComponent()
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
 
-    juce_currentConfigValue_label = nullptr;
+    juce_pluginVersion_label = nullptr;
     juce_currentConfigHeading_label = nullptr;
+    juce_currentConfigValue_label = nullptr;
     juce_currentLatency_label = nullptr;
 
 
@@ -102,8 +114,9 @@ void GuiMainComponent::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    juce_currentConfigValue_label->setBounds (proportionOfWidth (0.0000f), (getHeight() / 2) + -30, proportionOfWidth (1.0000f), 24);
+    juce_pluginVersion_label->setBounds (proportionOfWidth (0.0000f), (getHeight() / 2) + -88, proportionOfWidth (1.0000f), 24);
     juce_currentConfigHeading_label->setBounds (proportionOfWidth (0.0000f), (getHeight() / 2) + -54, proportionOfWidth (1.0000f), 24);
+    juce_currentConfigValue_label->setBounds (proportionOfWidth (0.0000f), (getHeight() / 2) + -30, proportionOfWidth (1.0000f), 24);
     juce_currentLatency_label->setBounds (proportionOfWidth (0.0000f), (getHeight() / 2) + 34, proportionOfWidth (1.0000f), 24);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]

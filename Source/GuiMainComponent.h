@@ -56,6 +56,7 @@ private:
     //[/UserVariables]
 
     //==============================================================================
+    std::unique_ptr<juce::Label> juce_pluginVersion_label;
     std::unique_ptr<juce::Label> juce_currentConfigValue_label;
     std::unique_ptr<juce::Label> juce_currentConfigHeading_label;
     std::unique_ptr<juce::Label> juce_currentLatency_label;
