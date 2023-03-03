@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(FORESIGHT VERSION 1.2.0)
+# read VERSION file for version
+file(STRINGS VERSION CURRENT_VERSION)
+
+project(FORESIGHT VERSION ${CURRENT_VERSION})
 
 add_subdirectory(Deps)
 
@@ -55,18 +58,12 @@ target_compile_definitions(FORESIGHT
 
 target_link_libraries(FORESIGHT
     PRIVATE
-        juce::juce_audio_basics
-        juce::juce_audio_devices
-        juce::juce_audio_formats
         juce::juce_audio_plugin_client
-        juce::juce_audio_processors
-        juce::juce_audio_utils
         juce::juce_core
         juce::juce_data_structures
         juce::juce_events
         juce::juce_graphics
         juce::juce_gui_basics
-        juce::juce_gui_extra
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
