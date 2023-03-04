@@ -24,8 +24,8 @@ private:
 	std::vector<juce::MidiMessage> beforeNoteMessages;
 	std::vector<juce::MidiMessage> afterNoteMessages;
 
-	void addStartDelay(double delay);
-	void addEndDelay(double delay);
+	void addStartDelay(int delay);
+	void addEndDelay(int delay);
 
 	void addBeforeNote(juce::MidiMessage message);
 	void addAfterNote(juce::MidiMessage message);

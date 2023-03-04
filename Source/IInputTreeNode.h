@@ -3,6 +3,6 @@
 
 class IInputTreeNode {
 public:
-	~IInputTreeNode() {}
+	virtual ~IInputTreeNode() = default;
 	virtual NoteContext& visit(NoteContext& context) = 0;
 };

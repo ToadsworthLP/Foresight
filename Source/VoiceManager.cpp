@@ -78,7 +78,7 @@ void VoiceManager::reset()
 	heldNote.reset();
 }
 
-void VoiceManager::updateConfiguration(Configuration* configuration)
+void VoiceManager::updateConfiguration(Configuration* c)
 {
-	this->configuration = configuration;
+	this->configuration = c;
 }

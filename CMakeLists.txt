@@ -49,6 +49,8 @@ target_sources(FORESIGHT
 target_compile_features(FORESIGHT PRIVATE cxx_std_20)
 
 target_compile_definitions(FORESIGHT
+    PRIVATE
+        CURRENT_VERSION="${CURRENT_VERSION}"
     PUBLIC
         # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
         JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call

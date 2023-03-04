@@ -26,7 +26,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
                 targetNumber = ConfigParserUtil::keyNameToNumber(trimmed);
                 target = KEYSWITCH;
             }
-            catch (std::exception& e) {
+            catch (...) {
                 throw std::exception("Encountered a <switch> node target attribute with an invalid value.");
             }
         }
@@ -35,7 +35,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
                 targetNumber = ConfigParserUtil::keyNameToNumber(targetStr);
                 target = NOTE;
             }
-            catch (std::exception& e) {
+            catch (...) {
                 throw std::exception("Encountered a <switch> node target attribute with an invalid value.");
             }
         }
@@ -48,7 +48,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
 
     for (const auto& caseEntryElement : source.getChildIterator()) {
         if (caseEntryElement->getTagName() == "case") {
-            int insertIndex = children.size();
+            auto insertIndex = children.size();
             children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement, keyswitch), std::vector<std::unique_ptr<IInputTreeNode>>()));
 
             for (const auto& caseChildElement : caseEntryElement->getChildIterator()) {
@@ -57,7 +57,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
             }
         }
         else {
-            int insertIndex = children.size();
+            auto insertIndex = children.size();
             children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement, keyswitch), std::vector<std::unique_ptr<IInputTreeNode>>()));
 
             IInputTreeNode* child = InputTreeNodeFactory::make(*caseEntryElement);

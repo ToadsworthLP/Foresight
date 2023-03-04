@@ -33,14 +33,14 @@ NoteProcessor::NoteProcessor(const NoteContext& note, Configuration* configurati
 	}
 }
 
-void NoteProcessor::addStartDelay(double delay)
+void NoteProcessor::addStartDelay(int delay)
 {
-	startDelaySamples += (delay / 1000) * sampleRate;
+	startDelaySamples += static_cast<int>((static_cast<double>(delay) / 1000.0) * sampleRate);
 }
 
-void NoteProcessor::addEndDelay(double delay)
+void NoteProcessor::addEndDelay(int delay)
 {
-	endDelaySamples += (delay / 1000) * sampleRate;
+	endDelaySamples += static_cast<int>((static_cast<double>(delay) / 1000.0) * sampleRate);
 }
 
 void NoteProcessor::addBeforeNote(juce::MidiMessage message)

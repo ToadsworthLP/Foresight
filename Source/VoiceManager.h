@@ -26,7 +26,7 @@ public:
 	/// </summary>
 	void reset();
 
-	void updateConfiguration(Configuration* configuration);
+	void updateConfiguration(Configuration* c);
 private:
 	std::optional<int> heldNote;
 	Configuration* configuration;

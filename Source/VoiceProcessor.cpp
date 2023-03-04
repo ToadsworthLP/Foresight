@@ -82,11 +82,11 @@ void VoiceProcessor::reset()
 	unprocessedBuffer.clear();
 }
 
-void VoiceProcessor::updateConfiguration(Configuration* configuration)
+void VoiceProcessor::updateConfiguration(Configuration* c)
 {
 	reset();
-	this->bufferSizeSamples = configuration->getLatencySamples();
-	this->configuration = configuration;
+	this->bufferSizeSamples = c->getLatencySamples();
+	this->configuration = c;
 }
 
 unsigned long long VoiceProcessor::getReadPosition()

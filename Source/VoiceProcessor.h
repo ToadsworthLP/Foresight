@@ -12,7 +12,7 @@ public:
 	~VoiceProcessor();
 	juce::MidiBuffer processBuffer(const juce::MidiBuffer& buffer, int channel, int lengthSamples, bool bypassed);
 	void reset();
-	void updateConfiguration(Configuration* configuration);
+	void updateConfiguration(Configuration* c);
 private:
 	Configuration* configuration;
 

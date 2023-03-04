@@ -34,7 +34,7 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
     }
     else if (target != LEGATO) {
         if (valueStr.starts_with("CC")) {
-            int multiplierStartIndex = valueStr.find('*');
+            auto multiplierStartIndex = valueStr.find('*');
 
             if (multiplierStartIndex > 0) {
                 std::string trimmed = valueStr.substr(2, valueStr.length());
@@ -67,7 +67,7 @@ int OutputListNode::getCCNumber()
 int OutputListNode::getValue(const NoteContext& context)
 {
     if (readCC.has_value()) {
-        int output = std::round(context.getCCValue(readCC.value()) * readValueMultiplier.value_or(1.0f));
+        int output = static_cast<int>(std::round(context.getCCValue(readCC.value()) * readValueMultiplier.value_or(1.0f)));
         return output;
     }
     else {
