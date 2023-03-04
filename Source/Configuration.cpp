@@ -15,12 +15,12 @@ Configuration::Configuration(const std::string& xml)
 
 	// Header
 
-	if (!rootElement) throw std::exception(xmlDocument->getLastParseError().toStdString().c_str());
+	if (!rootElement) throw std::runtime_error(xmlDocument->getLastParseError().toStdString().c_str());
 
 	version = rootElement->getIntAttribute("version", 0);
 	name = rootElement->getStringAttribute("name").toStdString();
 
-	if (version > CURRENT_CONFIG_VERSION) throw std::exception("This configuration was created for a newer version of Foresight. Please update the plugin to use this configuration.");
+	if (version > CURRENT_CONFIG_VERSION) throw std::runtime_error("This configuration was created for a newer version of Foresight. Please update the plugin to use this configuration.");
 
 	// Settings
 	juce::XmlElement* settingsRootElement = rootElement->getChildByName("settings");
@@ -70,7 +70,7 @@ Configuration::Configuration(const std::string& xml)
 
 	juce::XmlElement* inputTreeRootElement = rootElement->getChildByName("input");
 
-	if (!inputTreeRootElement) throw std::exception("No <input> node found.");
+	if (!inputTreeRootElement) throw std::runtime_error("No <input> node found.");
 
 	inputTreeRoot = std::make_unique<InputTreeRootNode>(*inputTreeRootElement);
 
@@ -78,7 +78,7 @@ Configuration::Configuration(const std::string& xml)
 
 	juce::XmlElement* outputListRootElement = rootElement->getChildByName("output");
 
-	if (!outputListRootElement) throw std::exception("No <output> node found.");
+	if (!outputListRootElement) throw std::runtime_error("No <output> node found.");
 
 	int maxOutputStartDelay = 0;
 	for (const auto& tagElement : outputListRootElement->getChildIterator()) {

@@ -5,7 +5,7 @@
 InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
 {
     if (!source.hasAttribute("target")) {
-        throw std::exception("Encountered a <switch> node without the required target attribute.");
+        throw std::runtime_error("Encountered a <switch> node without the required target attribute.");
     }
 
     std::string targetStr = source.getStringAttribute("target").toStdString();
@@ -27,7 +27,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
                 target = KEYSWITCH;
             }
             catch (...) {
-                throw std::exception("Encountered a <switch> node target attribute with an invalid value.");
+                throw std::runtime_error("Encountered a <switch> node target attribute with an invalid value.");
             }
         }
         else {
@@ -36,7 +36,7 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
                 target = NOTE;
             }
             catch (...) {
-                throw std::exception("Encountered a <switch> node target attribute with an invalid value.");
+                throw std::runtime_error("Encountered a <switch> node target attribute with an invalid value.");
             }
         }
     }
@@ -107,6 +107,6 @@ int InputTreeSwitchNode::getTargetValue(NoteContext& context)
             return context.getActiveProgram();
             break;
         default:
-            throw std::exception("Invalid <input> target value");
+            throw std::runtime_error("Invalid <input> target value");
     }
 }

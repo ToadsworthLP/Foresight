@@ -1,13 +1,18 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.22)
 
 # read VERSION file for version
 file(STRINGS VERSION CURRENT_VERSION)
 
-project(FORESIGHT VERSION ${CURRENT_VERSION})
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11" CACHE STRING "Support macOS down to Big Sur")
+
+project(Foresight VERSION ${CURRENT_VERSION})
+
+# By default we don't want Xcode schemes to be made for modules, etc
+set(CMAKE_XCODE_GENERATE_SCHEME OFF)
 
 add_subdirectory(deps)
 
-juce_add_plugin(FORESIGHT
+juce_add_plugin(Foresight
     COMPANY_NAME ToadsworthLP
     COMPANY_WEBSITE "toadsworthlp.github.io"
     NEEDS_MIDI_INPUT TRUE
@@ -16,15 +21,15 @@ juce_add_plugin(FORESIGHT
     VST3_CATEGORIES Delay
     PLUGIN_MANUFACTURER_CODE Twlp
     PLUGIN_CODE Fsgt
-    FORMATS VST3
+    FORMATS VST3 AU AUv3
     PRODUCT_NAME "Foresight"
     COPY_PLUGIN_AFTER_BUILD TRUE
     VST3_COPY_DIR ${CMAKE_CURRENT_LIST_DIR}/output
 )
 
-juce_generate_juce_header(FORESIGHT)
+juce_generate_juce_header(Foresight)
 
-target_sources(FORESIGHT
+target_sources(Foresight
     PRIVATE
         Source/BufferedMidiMessage.cpp
         Source/BufferedNote.cpp
@@ -46,9 +51,9 @@ target_sources(FORESIGHT
         Source/VoiceProcessor.cpp
 )
 
-target_compile_features(FORESIGHT PRIVATE cxx_std_20)
+target_compile_features(Foresight PRIVATE cxx_std_20)
 
-target_compile_definitions(FORESIGHT
+target_compile_definitions(Foresight
     PRIVATE
         CURRENT_VERSION="${CURRENT_VERSION}"
     PUBLIC
@@ -58,7 +63,7 @@ target_compile_definitions(FORESIGHT
         JUCE_VST3_CAN_REPLACE_VST2=0
 )
 
-target_link_libraries(FORESIGHT
+target_link_libraries(Foresight
     PRIVATE
         juce::juce_audio_plugin_client
         juce::juce_core

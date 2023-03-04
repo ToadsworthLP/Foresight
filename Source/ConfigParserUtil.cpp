@@ -25,7 +25,7 @@ int ConfigParserUtil::keyNameToNumber(const juce::String& keyName)
         keyNumber = juce::StringArray(noteNames, 12).indexOf(name) % 12;
 
         if (keyNumber < 0) {
-            throw std::exception("Encountered invalid note name in <set> tag.");
+            throw std::runtime_error("Encountered invalid note name in <set> tag.");
         }
     }
 

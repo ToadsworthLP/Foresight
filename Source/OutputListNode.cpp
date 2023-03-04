@@ -25,7 +25,7 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
             target = CC;
         }
         else {
-            throw std::exception("Encountered a <set> node target attribute with an invalid value.");
+            throw std::runtime_error("Encountered a <set> node target attribute with an invalid value.");
         }
     }
 
