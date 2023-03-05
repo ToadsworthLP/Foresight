@@ -1,8 +1,12 @@
 name: Foresight
 
 on:
-  workflow_dispatch:
   push:
+    branches:
+      - "*"
+    tags:
+      - "v*"
+  workflow_dispatch:
 
 # When pushing new commits, cancel any running builds on that branch
 concurrency:
