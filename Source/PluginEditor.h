@@ -19,7 +19,7 @@
 class ForesightAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    ForesightAudioProcessorEditor (ForesightAudioProcessor&);
+    explicit ForesightAudioProcessorEditor (ForesightAudioProcessor&);
     ~ForesightAudioProcessorEditor() override;
 
     //==============================================================================

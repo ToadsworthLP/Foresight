@@ -5,7 +5,7 @@
 
 class NoteContext {
 public:
-	NoteContext(BufferedNote* note, const std::optional<BufferedNote>& previousNote, int ccStates[128], int heldNotes[128], int program, int lastKeyswitch);
+	NoteContext(BufferedNote* note, const std::optional<BufferedNote>& previousNote, std::array<int, 128> ccStates, std::array<int, 128> heldNotes, int program, int lastKeyswitch);
 
 	int getVelocity() const;
 	int getCCValue(const int number) const;
@@ -23,8 +23,8 @@ private:
 	BufferedNote* note;
 	std::optional<BufferedNote> previousNote;
 	std::unordered_set<std::string> tags;
-	int* ccStates;
-	int* heldNotes;
+	std::array<int, 128> ccStates;
+	std::array<int, 128> heldNotes;
 	int program;
 	int lastKeyswitch;
 };

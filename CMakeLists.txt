@@ -7,6 +7,9 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "11" CACHE STRING "Support macOS down to Big Sur
 
 project(Foresight VERSION ${CURRENT_VERSION})
 
+# to enable use of clang-tidy
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # By default we don't want Xcode schemes to be made for modules, etc
 set(CMAKE_XCODE_GENERATE_SCHEME OFF)
 

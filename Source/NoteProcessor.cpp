@@ -13,7 +13,7 @@ NoteProcessor::NoteProcessor(const NoteContext& note, Configuration* configurati
 				addBeforeNote(juce::MidiMessage::controllerEvent(channel, node.getCCNumber(), node.getValue(note)));
 				break;
 			case OutputListNode::NOTE:
-				addBeforeNote(juce::MidiMessage::noteOn(channel, node.getValue(note), juce::uint8(64)));
+				addBeforeNote(juce::MidiMessage::noteOn(channel, node.getValue(note), static_cast<juce::uint8>(64)));
 				addAfterNote(juce::MidiMessage::noteOff(channel, node.getValue(note)));
 				break;
 			case OutputListNode::PROGRAM:
@@ -60,12 +60,12 @@ void NoteProcessor::applyStartDelay()
 	target->startTime += startDelaySamples;
 }
 
-int NoteProcessor::getStartDelaySamples()
+int NoteProcessor::getStartDelaySamples() const
 {
 	return startDelaySamples;
 }
 
-int NoteProcessor::getEndDelaySamples()
+int NoteProcessor::getEndDelaySamples() const
 {
 	return endDelaySamples;
 }
@@ -80,7 +80,7 @@ std::vector<juce::MidiMessage> NoteProcessor::getResults()
 		results.emplace_back(message);
 	}
 
-	results.emplace_back(juce::MidiMessage::noteOn(channel, target->pitch, (juce::uint8)target->velocity));
+	results.emplace_back(juce::MidiMessage::noteOn(channel, target->pitch, static_cast<juce::uint8>(target->velocity)));
 
 	for (const auto& message : afterNoteMessages) {
 		results.emplace_back(message);

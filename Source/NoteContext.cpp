@@ -1,6 +1,6 @@
 #include "NoteContext.h"
 
-NoteContext::NoteContext(BufferedNote* note, const std::optional<BufferedNote>& previousNote, int ccStates[128], int heldNotes[128], int program, int lastKeyswitch)
+NoteContext::NoteContext(BufferedNote* note, const std::optional<BufferedNote>& previousNote, std::array<int, 128> ccStates, std::array<int, 128> heldNotes, int program, int lastKeyswitch)
 {
 	this->note = note;
 	this->previousNote = previousNote;
@@ -43,7 +43,7 @@ bool NoteContext::isLegato() const
 	}
 
 	// 64 samples should definitely be enough to catch a legato even on inaccurate DAWs without creating unintentional legato transitions
-	return previousNote.has_value() && previousNote->allowLegato && llabs(note->startTime - previousNote->endTime.value()) <= 64;
+	return previousNote.has_value() && previousNote->allowLegato && note->startTime - previousNote->endTime.value() <= 64;
 }
 
 std::optional<unsigned long long> NoteContext::getLength() const

@@ -7,11 +7,11 @@
 class OutputListNode {
 public:
 	OutputListNode();
-	OutputListNode(const juce::XmlElement& source);
+	explicit OutputListNode(const juce::XmlElement& source);
 
 	enum TargetType { CC, NOTE, START, END, LEGATO, PROGRAM };
-	TargetType getTargetType();
-	int getCCNumber();
+	TargetType getTargetType() const;
+	int getCCNumber() const;
 	int getValue(const NoteContext& context);
 	int getValueRaw() const;
 

@@ -162,7 +162,7 @@ void ForesightAudioProcessor::processMidi(juce::AudioBuffer<float>& buffer, juce
     isCurrentlyInsideProcessBlock = true;
 
     auto playheadInfo = getPlayHead()->getPosition();
-    bool isPlaying = playheadInfo->getIsPlaying();
+    const bool isPlaying = playheadInfo->getIsPlaying();
 
     buffer.clear();
 
@@ -198,7 +198,7 @@ void ForesightAudioProcessor::processMidi(juce::AudioBuffer<float>& buffer, juce
         juce::MidiBuffer splitBuffer = voiceManager->processBuffer(inputMidi);
 
         // Process each voice separately
-        juce::MidiBuffer channelBuffers[16];
+        std::array<juce::MidiBuffer, 16> channelBuffers;
         for (int i = 0; i < 16; i++)
         {
             channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples(), bypassed);
@@ -228,7 +228,7 @@ bool ForesightAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* ForesightAudioProcessor::createEditor()
 {
     isCreatingEditor = true;
-    ForesightAudioProcessorEditor* editor = new ForesightAudioProcessorEditor (*this);
+    auto editor = new ForesightAudioProcessorEditor (*this);
     isCreatingEditor = false;
 
     return editor;
@@ -246,7 +246,7 @@ void ForesightAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     juce::XmlElement* windowSizeElement = state->createNewChildElement("window");
 
     auto editor = getActiveEditor();
-    if (editor) {
+    if (editor != nullptr) {
         currentWindowWidth = editor->getWidth();
         currentWindowHeight = editor->getHeight();
     }
@@ -259,16 +259,16 @@ void ForesightAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 
 void ForesightAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    std::unique_ptr<juce::XmlElement> state(getXmlFromBinary(data, sizeInBytes));
+    const std::unique_ptr<juce::XmlElement> state(getXmlFromBinary(data, sizeInBytes));
 
     // Check if the state is valid
     if (state && state->getTagName() == "foresight-state" && std::stoi(state->getAttributeValue(0).toStdString()) <= CURRENT_STATE_VERSION)
     {
-        std::string source = state->getChildByName("source")->getAllSubText().toStdString();
+        const std::string source = state->getChildByName("source")->getAllSubText().toStdString();
         setConfiguration(source);
 
         juce::XmlElement* windowSizeElement = state->getChildByName("window");
-        if (windowSizeElement) {
+        if (windowSizeElement != nullptr) {
             currentWindowWidth = windowSizeElement->getIntAttribute("width");
             currentWindowHeight = windowSizeElement->getIntAttribute("height");
         }
@@ -339,8 +339,8 @@ Configuration& ForesightAudioProcessor::getConfiguration()
 
 void ForesightAudioProcessor::updateGui()
 {
-    bool editorAvailable = (getActiveEditor() || isCreatingEditor);
-    if (updateGuiCallback && editorAvailable) updateGuiCallback(configuration->getName(), "Latency: " + std::to_string(configuration->getLatencySeconds()) + "s", configuration->getSourceXML());
+    const bool editorAvailable = (getActiveEditor() != nullptr || isCreatingEditor);
+    if (updateGuiCallback != nullptr && editorAvailable) updateGuiCallback(configuration->getName(), "Latency: " + std::to_string(configuration->getLatencySeconds()) + "s", configuration->getSourceXML());
 }
 
 void ForesightAudioProcessor::setUpdateGuiCallback(const std::function<void(const std::string&, const  std::string&, const std::string&)>& callback)

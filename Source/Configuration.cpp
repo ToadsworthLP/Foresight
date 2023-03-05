@@ -11,7 +11,7 @@ Configuration::Configuration(const std::string& xml)
 	this->xml = xml;
 
 	std::unique_ptr<juce::XmlDocument> xmlDocument = std::make_unique<juce::XmlDocument>(xml);
-	std::unique_ptr<juce::XmlElement> rootElement = xmlDocument->getDocumentElementIfTagMatches("foresight");
+	const std::unique_ptr<juce::XmlElement> rootElement = xmlDocument->getDocumentElementIfTagMatches("foresight");
 
 	// Header
 
@@ -25,16 +25,16 @@ Configuration::Configuration(const std::string& xml)
 	// Settings
 	juce::XmlElement* settingsRootElement = rootElement->getChildByName("settings");
 
-	if (settingsRootElement) {
+	if (settingsRootElement != nullptr) {
 		// Latency
 		juce::XmlElement* latencySettingElement = settingsRootElement->getChildByName("latency");
-		if (latencySettingElement) latency = std::stod(latencySettingElement->getAllSubText().toStdString()) / 1000.0;
+		if (latencySettingElement != nullptr) latency = std::stod(latencySettingElement->getAllSubText().toStdString()) / 1000.0;
 
 		// Range
 		for (const auto& rangeElement : settingsRootElement->getChildWithTagNameIterator("range")) {
-			std::string rangeModeText = rangeElement->getStringAttribute("boundary", "lower").toStdString();
+			const std::string rangeModeText = rangeElement->getStringAttribute("boundary", "lower").toStdString();
 			int* targetVariable = rangeModeText == "upper" ? &rangeUpperBoundary : &rangeLowerBoundary;
-			int noteNumber = ConfigParserUtil::keyNameToNumber(rangeElement->getAllSubText());
+			const int noteNumber = ConfigParserUtil::keyNameToNumber(rangeElement->getAllSubText());
 			*targetVariable = noteNumber;
 
 #ifdef DEBUG
@@ -44,9 +44,9 @@ Configuration::Configuration(const std::string& xml)
 
 		// Keyswitches
 		for (const auto& keyswitchElement : settingsRootElement->getChildWithTagNameIterator("keyswitches")) {
-			std::string keyswitchModeText = keyswitchElement->getStringAttribute("boundary", "lower").toStdString();
+			const std::string keyswitchModeText = keyswitchElement->getStringAttribute("boundary", "lower").toStdString();
 			int* targetVariable = keyswitchModeText == "upper" ? &keyswitchUpperBoundary : &keyswitchLowerBoundary;
-			int noteNumber = ConfigParserUtil::keyNameToNumber(keyswitchElement->getAllSubText());
+			const int noteNumber = ConfigParserUtil::keyNameToNumber(keyswitchElement->getAllSubText());
 			*targetVariable = noteNumber;
 
 #ifdef DEBUG
@@ -56,7 +56,7 @@ Configuration::Configuration(const std::string& xml)
 
 		// Blocklist
 		for (const auto& blockElement : settingsRootElement->getChildWithTagNameIterator("block")) {
-			juce::String targetText = blockElement->getAllSubText();
+			const juce::String targetText = blockElement->getAllSubText();
 			if (targetText.startsWith("CC")) {
 				blocked.insert(targetText.trim().toStdString());
 			}
@@ -70,7 +70,7 @@ Configuration::Configuration(const std::string& xml)
 
 	juce::XmlElement* inputTreeRootElement = rootElement->getChildByName("input");
 
-	if (!inputTreeRootElement) throw std::runtime_error("No <input> node found.");
+	if (inputTreeRootElement == nullptr) throw std::runtime_error("No <input> node found.");
 
 	inputTreeRoot = std::make_unique<InputTreeRootNode>(*inputTreeRootElement);
 
@@ -78,11 +78,11 @@ Configuration::Configuration(const std::string& xml)
 
 	juce::XmlElement* outputListRootElement = rootElement->getChildByName("output");
 
-	if (!outputListRootElement) throw std::runtime_error("No <output> node found.");
+	if (outputListRootElement == nullptr) throw std::runtime_error("No <output> node found.");
 
 	int maxOutputStartDelay = 0;
 	for (const auto& tagElement : outputListRootElement->getChildIterator()) {
-		std::string tagName = tagElement->getStringAttribute("name").toStdString();
+		const std::string tagName = tagElement->getStringAttribute("name").toStdString();
 
 		for (const auto& setElement : tagElement->getChildIterator()) {
 			auto outputNode = OutputListNode(*setElement);
@@ -101,22 +101,22 @@ Configuration::Configuration(const std::string& xml)
 	}
 }
 
-std::string Configuration::getSourceXML()
+std::string Configuration::getSourceXML() const
 {
 	return xml;
 }
 
-std::string Configuration::getName()
+std::string Configuration::getName() const
 {
 	return name;
 }
 
-double Configuration::getLatencySeconds()
+double Configuration::getLatencySeconds() const
 {
 	return latency;
 }
 
-double Configuration::getSampleRate()
+double Configuration::getSampleRate() const
 {
 	return lastSampleRate;
 }
@@ -126,25 +126,25 @@ void Configuration::updateSampleRate(double sampleRate)
 	lastSampleRate = sampleRate;
 }
 
-int Configuration::getLatencySamples()
+int Configuration::getLatencySamples() const
 {
-	return (int)std::round(latency * lastSampleRate);
+	return  static_cast<int>(std::round(latency * lastSampleRate));
 }
 
-bool Configuration::isInRange(int noteNumber)
+bool Configuration::isInRange(int noteNumber) const
 {
 	return noteNumber >= rangeLowerBoundary && noteNumber <= rangeUpperBoundary;
 }
 
-bool Configuration::isKeyswitch(int noteNumber)
+bool Configuration::isKeyswitch(int noteNumber) const
 {
 	return noteNumber >= keyswitchLowerBoundary && noteNumber <= keyswitchUpperBoundary;
 }
 
-bool Configuration::isBlocked(const juce::MidiMessage& message)
+bool Configuration::isBlocked(const juce::MidiMessage& message) const
 {
 	if (message.isController()) {
-		std::string ccString = "CC" + std::to_string(message.getControllerNumber());
+		const std::string ccString = "CC" + std::to_string(message.getControllerNumber());
 		return blocked.contains(ccString);
 	}
 	else if (message.isNoteOnOrOff()) {
@@ -154,7 +154,7 @@ bool Configuration::isBlocked(const juce::MidiMessage& message)
 	return false;
 }
 
-std::unordered_set<std::string> Configuration::getTagsForNote(NoteContext& context)
+std::unordered_set<std::string> Configuration::getTagsForNote(NoteContext& context) const
 {
 	inputTreeRoot->visit(context);
 	return context.getTags();

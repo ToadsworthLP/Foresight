@@ -7,7 +7,7 @@
 
 class VoiceProcessor {
 public:
-	VoiceProcessor();
+	VoiceProcessor() = default;
 	VoiceProcessor(const VoiceProcessor& other);
 	~VoiceProcessor();
 	juce::MidiBuffer processBuffer(const juce::MidiBuffer& buffer, int channel, int lengthSamples, bool bypassed);
@@ -25,17 +25,17 @@ private:
 	BufferedNote* heldNoteAtWritePosition = nullptr;
 	std::optional<BufferedNote> previousNoteAtWritePosition;
 	std::optional<BufferedNote> previousNoteAtReadPosition;
-	int writePositionCCStates[128] = { 0 };
-	int readPositionCCStates[128] = { 0 };
-	int writePositionHeldNotes[128] = { 0 };
-	int readPositionHeldNotes[128] = { 0 };
+	std::array<int, 128> writePositionCCStates;
+	std::array<int, 128> readPositionCCStates;
+	std::array<int, 128> writePositionHeldNotes;
+	std::array<int, 128> readPositionHeldNotes;
 	int readPositionProgram = 0;
 	int writePositionProgram = 0;
 
 	std::vector<BufferedMidiMessage> unprocessedBuffer;
 
-	unsigned long long getReadPosition();
-	unsigned long long getWritePosition();
+	unsigned long long getReadPosition() const;
+	unsigned long long getWritePosition() const;
 
 	std::vector<juce::MidiMessage> processSample(const std::optional<std::vector<juce::MidiMessage>>& enteredMessages, int channel, bool bypassed);
 };

@@ -8,20 +8,20 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
         throw std::runtime_error("Encountered a <switch> node without the required target attribute.");
     }
 
-    std::string targetStr = source.getStringAttribute("target").toStdString();
+    const std::string targetStr = source.getStringAttribute("target").toStdString();
     if (targetStr == "legato") target = LEGATO;
     else if (targetStr == "velocity") target = VELOCITY;
     else if (targetStr == "length") target = LENGTH;
     else if (targetStr == "program") target = PROGRAM;
     else {
         if (targetStr.starts_with("CC")) {
-            std::string trimmed = targetStr.substr(2, targetStr.length());
+            const std::string trimmed = targetStr.substr(2, targetStr.length());
             targetNumber = std::stoi(trimmed);
 
             target = CC;
         }           
         else if (targetStr.starts_with("KS_")) {
-            std::string trimmed = targetStr.substr(3, targetStr.length());
+            const std::string trimmed = targetStr.substr(3, targetStr.length());
             try {
                 targetNumber = ConfigParserUtil::keyNameToNumber(trimmed);
                 target = KEYSWITCH;
@@ -89,10 +89,13 @@ int InputTreeSwitchNode::getTargetValue(NoteContext& context)
             return context.getVelocity();
             break;
         case LEGATO:
-            return context.isLegato();
+            return static_cast<int>(context.isLegato());
             break;
         case LENGTH:
-            return context.getLength().has_value() ? context.getLength().value() % INT_MAX : INT_MAX;
+            if (!context.getLength().has_value()) {
+                return INT_MAX;
+            }
+            return static_cast<int>(context.getLength().value()) % INT_MAX;
             break;
         case CC:
             return context.getCCValue(targetNumber);

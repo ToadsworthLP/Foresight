@@ -5,7 +5,7 @@
 class BufferedMidiMessage {
 public:
 	BufferedMidiMessage(const juce::MidiMessage& message, unsigned long long time) : message(message), time(time) {}
-	~BufferedMidiMessage() {}
+	~BufferedMidiMessage() = default;
 
 	juce::MidiMessage message;
 	unsigned long long time;

@@ -1,13 +1,5 @@
 #include "VoiceManager.h"
 
-VoiceManager::VoiceManager()
-{
-}
-
-VoiceManager::~VoiceManager()
-{
-}
-
 juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 {
 	juce::MidiBuffer processedBuffer;
@@ -68,7 +60,7 @@ juce::MidiBuffer VoiceManager::processBuffer(const juce::MidiBuffer& buffer)
 	return processedBuffer;
 }
 
-int VoiceManager::getCurrentVoiceCount()
+int VoiceManager::getCurrentVoiceCount() const
 {
 	return 1;
 }

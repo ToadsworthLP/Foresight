@@ -4,7 +4,7 @@
 
 IInputTreeNode* InputTreeNodeFactory::make(const juce::XmlElement& source)
 {
-    IInputTreeNode* node;
+    IInputTreeNode* node = nullptr;
 
     if (source.getTagName() == "switch") {
         node = new InputTreeSwitchNode(source);

@@ -9,8 +9,8 @@ OutputListNode::OutputListNode()
 
 OutputListNode::OutputListNode(const juce::XmlElement& source)
 {
-	std::string targetStr = source.getStringAttribute("target").toStdString();
-	std::string valueStr = source.getAllSubText().toStdString();
+	const std::string targetStr = source.getStringAttribute("target").toStdString();
+	const std::string valueStr = source.getAllSubText().toStdString();
 
     if (targetStr == "note") target = NOTE;
     else if (targetStr == "start") target = START;
@@ -19,7 +19,7 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
     else if (targetStr == "program") target = PROGRAM;
     else {
         if (targetStr.starts_with("CC")) {
-            std::string trimmed = targetStr.substr(2, targetStr.length());
+            const std::string trimmed = targetStr.substr(2, targetStr.length());
             ccNumber = std::stoi(trimmed);
 
             target = CC;
@@ -37,14 +37,14 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
             auto multiplierStartIndex = valueStr.find('*');
 
             if (multiplierStartIndex > 0) {
-                std::string trimmed = valueStr.substr(2, valueStr.length());
+                const std::string trimmed = valueStr.substr(2, valueStr.length());
                 readCC = std::stoi(trimmed);
 
-                std::string multiplierStr = valueStr.substr(multiplierStartIndex + 1, valueStr.length());
+                const std::string multiplierStr = valueStr.substr(multiplierStartIndex + 1, valueStr.length());
                 readValueMultiplier = std::stof(multiplierStr);
             }
             else {
-                std::string trimmed = valueStr.substr(2, valueStr.length());
+                const std::string trimmed = valueStr.substr(2, valueStr.length());
                 readCC = std::stoi(trimmed);
             }
         }
@@ -54,12 +54,12 @@ OutputListNode::OutputListNode(const juce::XmlElement& source)
     }
 }
 
-OutputListNode::TargetType OutputListNode::getTargetType()
+OutputListNode::TargetType OutputListNode::getTargetType() const
 {
     return target;
 }
 
-int OutputListNode::getCCNumber()
+int OutputListNode::getCCNumber() const
 {
     return ccNumber;
 }
@@ -67,8 +67,7 @@ int OutputListNode::getCCNumber()
 int OutputListNode::getValue(const NoteContext& context)
 {
     if (readCC.has_value()) {
-        int output = static_cast<int>(std::round(context.getCCValue(readCC.value()) * readValueMultiplier.value_or(1.0f)));
-        return output;
+        return static_cast<int>(std::round(context.getCCValue(readCC.value()) * readValueMultiplier.value_or(1.0f)));
     }
     else {
         return value;
