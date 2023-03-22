@@ -147,69 +147,22 @@ bool ForesightAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts
 }
 #endif
 
-void ForesightAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi)
+void ForesightAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi)
 {
-    isCurrentlyInsideProcessBlock = true;
-
-    auto playheadInfo = getPlayHead()->getPosition();
-    bool isPlaying = playheadInfo->getIsPlaying();
-
-    buffer.clear();
-
-    // Clear everything if it was just stopped or started
-    if (!isPlaying && lastPlayingState) {
-        clearState();
-
-        juce::MidiBuffer noteStopBuffer;
-        for (int i = 0; i < 16; i++)
-        {
-            noteStopBuffer.addEvent(juce::MidiMessage::allNotesOff(i + 1), 0);
-        }
-
-        inputMidi.swapWith(noteStopBuffer); // Also send note off if it was stopped
-    }
-    else if (isPlaying && !lastPlayingState) {
-        clearState();
-    } 
-    
-#if DEBUG
-    if (true)
-#else
-    // Bypass all processing if the host is not playing
-    if (isPlaying)
-#endif
-    {
-        // Split the input into a maximum of 16 monophonic voices
-        juce::MidiBuffer splitBuffer = voiceManager->processBuffer(inputMidi);
-
-        // Process each voice seperately
-        juce::MidiBuffer channelBuffers[16];
-        for (int i = 0; i < 16; i++)
-        {
-            channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples(), false);
-        }
-
-        // Merge the buffers
-        juce::MidiBuffer mergedOutputBuffer;
-        for (const juce::MidiBuffer& channelBuffer : channelBuffers)
-        {
-            mergedOutputBuffer.addEvents(channelBuffer, 0, -1, 0);
-        }
-
-        inputMidi.swapWith(mergedOutputBuffer);
-    }
-
-    lastPlayingState = isPlaying;
-
-    isCurrentlyInsideProcessBlock = false;
+    processMidi(buffer, inputMidi, false);
 }
 
 void ForesightAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi)
 {
+    processMidi(buffer, inputMidi, true);
+}
+
+void ForesightAudioProcessor::processMidi(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& inputMidi, bool bypassed)
+{
     isCurrentlyInsideProcessBlock = true;
 
     auto playheadInfo = getPlayHead()->getPosition();
-    bool isPlaying = playheadInfo->getIsPlaying();
+    const bool isPlaying = playheadInfo->getIsPlaying();
 
     buffer.clear();
 
@@ -217,19 +170,24 @@ void ForesightAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buf
     if (!isPlaying && lastPlayingState) {
         clearState();
 
+        // Also send note off messages if it was stopped
         juce::MidiBuffer noteStopBuffer;
-        for (int i = 0; i < 16; i++)
+        for (int channel = 1; channel <= 16; channel++)
         {
-            noteStopBuffer.addEvent(juce::MidiMessage::allNotesOff(i + 1), 0);
+            for (int note = 0; note < 128; note++)
+            {
+                noteStopBuffer.addEvent(juce::MidiMessage::noteOff(channel, note), 0);
+            }
         }
 
-        inputMidi.swapWith(noteStopBuffer); // Also send note off if it was stopped
+        inputMidi.swapWith(noteStopBuffer); 
     }
     else if (isPlaying && !lastPlayingState) {
         clearState();
     }
 
-#if DEBUG
+#ifdef DEBUG
+    // JUCE plugin host never reports that it is playing
     if (true)
 #else
     // Bypass all processing if the host is not playing
@@ -239,11 +197,11 @@ void ForesightAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buf
         // Split the input into a maximum of 16 monophonic voices
         juce::MidiBuffer splitBuffer = voiceManager->processBuffer(inputMidi);
 
-        // Process each voice seperately
-        juce::MidiBuffer channelBuffers[16];
+        // Process each voice separately
+        std::array<juce::MidiBuffer, 16> channelBuffers;
         for (int i = 0; i < 16; i++)
         {
-            channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples(), true);
+            channelBuffers[i] = voiceProcessors[i].processBuffer(splitBuffer, i + 1, buffer.getNumSamples(), bypassed);
         }
 
         // Merge the buffers
@@ -270,7 +228,7 @@ bool ForesightAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* ForesightAudioProcessor::createEditor()
 {
     isCreatingEditor = true;
-    ForesightAudioProcessorEditor* editor = new ForesightAudioProcessorEditor (*this);
+    auto editor = new ForesightAudioProcessorEditor (*this);
     isCreatingEditor = false;
 
     return editor;
@@ -288,7 +246,7 @@ void ForesightAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     juce::XmlElement* windowSizeElement = state->createNewChildElement("window");
 
     auto editor = getActiveEditor();
-    if (editor) {
+    if (editor != nullptr) {
         currentWindowWidth = editor->getWidth();
         currentWindowHeight = editor->getHeight();
     }
@@ -301,16 +259,16 @@ void ForesightAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 
 void ForesightAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    std::unique_ptr<juce::XmlElement> state(getXmlFromBinary(data, sizeInBytes));
+    const std::unique_ptr<juce::XmlElement> state(getXmlFromBinary(data, sizeInBytes));
 
     // Check if the state is valid
     if (state && state->getTagName() == "foresight-state" && std::stoi(state->getAttributeValue(0).toStdString()) <= CURRENT_STATE_VERSION)
     {
-        std::string source = state->getChildByName("source")->getAllSubText().toStdString();
+        const std::string source = state->getChildByName("source")->getAllSubText().toStdString();
         setConfiguration(source);
 
         juce::XmlElement* windowSizeElement = state->getChildByName("window");
-        if (windowSizeElement) {
+        if (windowSizeElement != nullptr) {
             currentWindowWidth = windowSizeElement->getIntAttribute("width");
             currentWindowHeight = windowSizeElement->getIntAttribute("height");
         }
@@ -381,8 +339,8 @@ Configuration& ForesightAudioProcessor::getConfiguration()
 
 void ForesightAudioProcessor::updateGui()
 {
-    bool editorAvailable = (getActiveEditor() || isCreatingEditor);
-    if (updateGuiCallback && editorAvailable) updateGuiCallback(configuration->getName(), "Latency: " + std::to_string(configuration->getLatencySeconds()) + "s", configuration->getSourceXML());
+    const bool editorAvailable = (getActiveEditor() != nullptr || isCreatingEditor);
+    if (updateGuiCallback != nullptr && editorAvailable) updateGuiCallback(configuration->getName(), "Latency: " + std::to_string(configuration->getLatencySeconds()) + "s", configuration->getSourceXML());
 }
 
 void ForesightAudioProcessor::setUpdateGuiCallback(const std::function<void(const std::string&, const  std::string&, const std::string&)>& callback)

@@ -18,7 +18,7 @@ std::optional<unsigned long long> BufferedNote::length()
 	}
 }
 
-bool BufferedNote::hasEnd()
+bool BufferedNote::hasEnd() const
 {
 	return endTime.has_value();
 }

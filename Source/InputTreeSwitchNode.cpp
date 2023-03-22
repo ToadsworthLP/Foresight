@@ -5,36 +5,51 @@
 InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
 {
     if (!source.hasAttribute("target")) {
-        throw std::exception("Encountered a <switch> node without the required target attribute.");
+        throw std::runtime_error("Encountered a <switch> node without the required target attribute.");
     }
 
-    std::string targetStr = source.getStringAttribute("target").toStdString();
+    const std::string targetStr = source.getStringAttribute("target").toStdString();
     if (targetStr == "legato") target = LEGATO;
     else if (targetStr == "velocity") target = VELOCITY;
     else if (targetStr == "length") target = LENGTH;
     else if (targetStr == "program") target = PROGRAM;
     else {
         if (targetStr.starts_with("CC")) {
-            std::string trimmed = targetStr.substr(2, targetStr.length());
+            const std::string trimmed = targetStr.substr(2, targetStr.length());
             targetNumber = std::stoi(trimmed);
 
             target = CC;
+        }           
+        else if (targetStr.starts_with("KS_")) {
+            const std::string trimmed = targetStr.substr(3, targetStr.length());
+            try {
+                targetNumber = ConfigParserUtil::keyNameToNumber(trimmed);
+                target = KEYSWITCH;
+            }
+            catch (...) {
+                throw std::runtime_error("Encountered a <switch> node target attribute with an invalid value.");
+            }
         }
         else {
             try {
-                targetNumber = ConfigParserUtil::keyNameToNumber(targetStr, 3);
+                targetNumber = ConfigParserUtil::keyNameToNumber(targetStr);
                 target = NOTE;
             }
-            catch (std::exception& e) {
-                throw std::exception("Encountered a <switch> node target attribute with an invalid value.");
+            catch (...) {
+                throw std::runtime_error("Encountered a <switch> node target attribute with an invalid value.");
             }
         }
     }
 
+    int keyswitch = -1;
+    if (target == KEYSWITCH) {
+        keyswitch = targetNumber;
+    }
+
     for (const auto& caseEntryElement : source.getChildIterator()) {
         if (caseEntryElement->getTagName() == "case") {
-            int insertIndex = children.size();
-            children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement), std::vector<std::unique_ptr<IInputTreeNode>>()));
+            auto insertIndex = children.size();
+            children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement, keyswitch), std::vector<std::unique_ptr<IInputTreeNode>>()));
 
             for (const auto& caseChildElement : caseEntryElement->getChildIterator()) {
                 IInputTreeNode* child = InputTreeNodeFactory::make(*caseChildElement);
@@ -42,8 +57,8 @@ InputTreeSwitchNode::InputTreeSwitchNode(const juce::XmlElement& source)
             }
         }
         else {
-            int insertIndex = children.size();
-            children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement), std::vector<std::unique_ptr<IInputTreeNode>>()));
+            auto insertIndex = children.size();
+            children.emplace_back(std::make_tuple(InputTreeCase(*caseEntryElement, keyswitch), std::vector<std::unique_ptr<IInputTreeNode>>()));
 
             IInputTreeNode* child = InputTreeNodeFactory::make(*caseEntryElement);
             std::get<1>(children[insertIndex]).emplace_back(child);
@@ -74,10 +89,13 @@ int InputTreeSwitchNode::getTargetValue(NoteContext& context)
             return context.getVelocity();
             break;
         case LEGATO:
-            return context.isLegato();
+            return static_cast<int>(context.isLegato());
             break;
         case LENGTH:
-            return context.getLength().has_value() ? context.getLength().value() % INT_MAX : INT_MAX;
+            if (!context.getLength().has_value()) {
+                return INT_MAX;
+            }
+            return static_cast<int>(context.getLength().value()) % INT_MAX;
             break;
         case CC:
             return context.getCCValue(targetNumber);
@@ -85,8 +103,13 @@ int InputTreeSwitchNode::getTargetValue(NoteContext& context)
         case NOTE:
             return context.getHeldNoteVelocity(targetNumber);
             break;
+        case KEYSWITCH:
+            return context.getLastKeyswitch();
+            break;
         case PROGRAM:
             return context.getActiveProgram();
             break;
+        default:
+            throw std::runtime_error("Invalid <input> target value");
     }
 }

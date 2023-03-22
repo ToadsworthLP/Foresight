@@ -8,17 +8,18 @@
 class Configuration {
 public:
 	Configuration();
-	Configuration(const std::string& xml);
-	std::string getSourceXML();
-	std::string getName();
-	double getLatencySeconds();
-	double getSampleRate();
+	explicit Configuration(const std::string& xml);
+	std::string getSourceXML() const;
+	std::string getName() const;
+	double getLatencySeconds() const;
+	double getSampleRate() const;
 	void updateSampleRate(double sampleRate);
-	int getLatencySamples();
-	bool isInRange(int noteNumber);
-	bool isBlocked(const juce::MidiMessage& message);
+	int getLatencySamples() const;
+	bool isInRange(int noteNumber) const;
+	bool isKeyswitch(int noteNumber) const;
+	bool isBlocked(const juce::MidiMessage& message) const;
 
-	std::unordered_set<std::string> getTagsForNote(NoteContext& context);
+	std::unordered_set<std::string> getTagsForNote(NoteContext& context) const;
 	std::vector<OutputListNode> getOutputNodes(const std::string& tag);
 private:
 	int version;
@@ -29,6 +30,8 @@ private:
 	double latency = 0.0;
 	int rangeLowerBoundary = INT_MIN;
 	int rangeUpperBoundary = INT_MAX;
+	int keyswitchLowerBoundary = INT_MAX;
+	int keyswitchUpperBoundary = INT_MIN;
 
 	std::unique_ptr<IInputTreeNode> inputTreeRoot;
 	std::map<std::string, std::vector<OutputListNode>> outputList;

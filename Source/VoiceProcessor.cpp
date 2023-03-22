@@ -3,10 +3,6 @@
 #include "NoteContext.h"
 #include "NoteProcessor.h"
 
-VoiceProcessor::VoiceProcessor()
-{
-}
-
 VoiceProcessor::VoiceProcessor(const VoiceProcessor& other)
 {
 	bufferSizeSamples = other.bufferSizeSamples;
@@ -58,7 +54,7 @@ juce::MidiBuffer VoiceProcessor::processBuffer(const juce::MidiBuffer& buffer, i
 			output = processSample(std::optional<std::vector<juce::MidiMessage>>(), channel, bypassed);
 		}
 
-		for (const auto message : output) {
+		for (const auto& message : output) {
 			outputBuffer.addEvent(message, i);
 		}
 	}
@@ -82,19 +78,19 @@ void VoiceProcessor::reset()
 	unprocessedBuffer.clear();
 }
 
-void VoiceProcessor::updateConfiguration(Configuration* configuration)
+void VoiceProcessor::updateConfiguration(Configuration* c)
 {
 	reset();
-	this->bufferSizeSamples = configuration->getLatencySamples();
-	this->configuration = configuration;
+	this->bufferSizeSamples = c->getLatencySamples();
+	this->configuration = c;
 }
 
-unsigned long long VoiceProcessor::getReadPosition()
+unsigned long long VoiceProcessor::getReadPosition() const
 {
 	return readHeadPosition;
 }
 
-unsigned long long VoiceProcessor::getWritePosition()
+unsigned long long VoiceProcessor::getWritePosition() const
 {
 	return readHeadPosition + bufferSizeSamples;
 }
@@ -133,10 +129,10 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 	for (const auto& note : bufferedNotes) {
 		if (note->startTime == getReadPosition()) {
 			// Process note that's about to play - everything but start delay is processed here
-			NoteContext context = NoteContext(note, previousNoteAtReadPosition, readPositionCCStates, readPositionHeldNotes, readPositionProgram);
-			std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
+			NoteContext context = NoteContext(note, previousNoteAtReadPosition, readPositionCCStates, readPositionHeldNotes, readPositionProgram, lastKeyswitch);
+			const std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
 			NoteProcessor noteProcessor = NoteProcessor(context, configuration, tags, channel);
-			std::vector<juce::MidiMessage> results = noteProcessor.getResults();
+			const std::vector<juce::MidiMessage> results = noteProcessor.getResults();
 
 #if DEBUG
 			DBG("Read Note " << note->pitch << ": ");
@@ -165,21 +161,30 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
 				if (message.isNoteOn()) writePositionHeldNotes[message.getNoteNumber()] = message.getVelocity();
 				if (message.isNoteOff()) writePositionHeldNotes[message.getNoteNumber()] = -1;
 				if (message.isProgramChange()) writePositionProgram = message.getProgramChangeNumber();
+				if (configuration->isKeyswitch(message.getNoteNumber())) {
+					lastKeyswitch = message.getNoteNumber();
+
+#ifdef DEBUG
+					if (message.isNoteOn()) {
+						DBG("Keyswitch: " << lastKeyswitch);
+					}
+#endif
+				}
 			}
-			else if (message.isNoteOff() && heldNoteAtWritePosition) { // Note off
+			else if (message.isNoteOff() && heldNoteAtWritePosition != nullptr) { // Note off
 				heldNoteAtWritePosition->endTime = getWritePosition();
 				lastWrittenNote = *heldNoteAtWritePosition;
 				previousNoteAtWritePosition = *heldNoteAtWritePosition;
 				heldNoteAtWritePosition = nullptr;
 			}
 			else if (message.isNoteOn()) { // Note on
-				BufferedNote* newNote = new BufferedNote(message, getWritePosition());
+				auto newNote = new BufferedNote(message, getWritePosition());
 				bufferedNotes.emplace_back(newNote);
 				heldNoteAtWritePosition = newNote;
 
 				// Process new note - only start delay is processed here
-				NoteContext context = NoteContext(newNote, previousNoteAtWritePosition, writePositionCCStates, writePositionHeldNotes, writePositionProgram);
-				std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
+				NoteContext context = NoteContext(newNote, previousNoteAtWritePosition, writePositionCCStates, writePositionHeldNotes, writePositionProgram, lastKeyswitch);
+				const std::unordered_set<std::string> tags = configuration->getTagsForNote(context);
 				NoteProcessor noteProcessor = NoteProcessor(context, configuration, tags, channel);
 				noteProcessor.applyStartDelay();
 
@@ -187,7 +192,7 @@ std::vector<juce::MidiMessage> VoiceProcessor::processSample(const std::optional
    				if (std::abs(noteProcessor.getStartDelaySamples()) > 0) {
 					for (auto& unprocessedMsg : unprocessedBuffer) { // ugh
 						// 512 samples or about 10ms at 48000kHz is a very generous window, so it's probably even somewhat playable
-						if (std::llabs(getWritePosition() - unprocessedMsg.time) < 512) {
+						if (getWritePosition() - unprocessedMsg.time < 512) {
 							unprocessedMsg.time = newNote->startTime;
 						}
 					}
